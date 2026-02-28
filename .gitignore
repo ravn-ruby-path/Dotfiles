@@ -1,0 +1,7 @@
+docs/src/content/docs/en/*
+!docs/src/content/docs/en/.gitkeep
+docs/src/content/docs/es/*
+!docs/src/content/docs/es/.gitkeep
+node_modules/
+.astro/
+dist/
