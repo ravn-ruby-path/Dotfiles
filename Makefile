@@ -53,4 +53,5 @@ NC := \033[0m # No Color
 # ═══════════════════════════════════════════════════════════════
 
 include make/docs.mk
+include make/git.mk
 include make/logs.mk
