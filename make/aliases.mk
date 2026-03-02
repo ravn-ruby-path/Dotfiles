@@ -1,11 +1,9 @@
-# ============================================================================
-# Compatibility Aliases (Legacy)
-# ============================================================================
-# Description: Redirects from old commands to the new naming convention
-# Documentation: docs/src/content/docs/makefile/10-aliases.mdx
-# These commands are kept for compatibility but are marked as deprecated.
-# It is recommended to use the new prefixes.
-# ============================================================================
+# ═══════════════════════════════════════════════════════════════
+# 📎 COMPATIBILITY ALIASES - Legacy command redirects
+# ═══════════════════════════════════════════════════════════════
+# 📚 Documentation: docs/src/content/docs/makefile/10-aliases.mdx
+# 🎯 Purpose: Redirect deprecated command names to new naming convention
+# ──── Overview: All old commands kept for compatibility, deprecated ────
 
 .PHONY: switch switch-safe switch-fast test build dry-run boot validate debug emergency \
         fix-permissions hardware-scan sync deploy clean deep-clean update update-nixpkgs \
@@ -16,6 +14,10 @@
         help-aliases
 
 # === Alias Help ===
+# ═══════════════════════════════════════════════════════════════
+# 📎 HELP-ALIASES - Show legacy aliases and their modern equivalents
+# ═══════════════════════════════════════════════════════════════
+# ──── Displays old vs new command mapping table ──────────────
 help-aliases: ## Show list of legacy aliases and their modern equivalents
 	@printf "\n"
 	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
