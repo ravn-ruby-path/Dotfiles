@@ -136,6 +136,9 @@ ifndef EMBEDDED
 endif
 	@if [ -z "$(GEN1)" ] || [ -z "$(GEN2)" ]; then \
 		printf "$(YELLOW)  usage: make gen-diff GEN1=<n> GEN2=<m>$(NC)\n\n"; \
+	elif ! command -v nix-diff >/dev/null 2>&1; then \
+		printf "$(YELLOW)  ⚠  nix-diff not found — add it to your packages$(NC)\n"; \
+		printf "$(DIM)  nix run nixpkgs#nix-diff -- /nix/var/nix/profiles/system-$(GEN1)-link /nix/var/nix/profiles/system-$(GEN2)-link$(NC)\n\n"; \
 	else \
 		nix-diff /nix/var/nix/profiles/system-$(GEN1)-link /nix/var/nix/profiles/system-$(GEN2)-link; \
 	fi
@@ -152,33 +155,32 @@ endif
 # 📊 GEN-DIFF-CURRENT - Compare current generation with the previous one
 # ═══════════════════════════════════════════════════════════════
 # ──── Auto-detects current generation number ────────────────
-# Compare current generation with the previous one
 gen-diff-current: ## Compare current generation with previous
 ifndef EMBEDDED
 	@printf "\n"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(CYAN)             📊 Current vs Previous Generation          \n$(NC)"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
-endif
-	
-	@printf "$(GREEN)1.$(NC) $(BLUE)Identifying Generations:$(NC)\n"
+	@printf "$(CYAN)📊 gen-diff-current · current vs previous$(NC)\n"
 	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
+endif
 	@CURRENT=$$(sudo nix-env --list-generations --profile /nix/var/nix/profiles/system | grep current | awk '{print $$1}'); \
 	PREVIOUS=$$((CURRENT - 1)); \
 	if [ $$PREVIOUS -gt 0 ]; then \
-		printf "$(BLUE)Comparing Gen $$PREVIOUS (previous) vs Gen $$CURRENT (current)...$(NC)\n\n"; \
-		nix-diff /nix/var/nix/profiles/system-$$PREVIOUS-link /nix/var/nix/profiles/system-$$CURRENT-link; \
+		printf "$(DIM)  gen $$PREVIOUS (previous) → gen $$CURRENT (current)$(NC)\n\n"; \
+		if command -v nix-diff >/dev/null 2>&1; then \
+			nix-diff /nix/var/nix/profiles/system-$$PREVIOUS-link /nix/var/nix/profiles/system-$$CURRENT-link; \
+		else \
+			printf "$(YELLOW)  ⚠  nix-diff not found — add it to your packages$(NC)\n"; \
+			printf "$(DIM)  nix run nixpkgs#nix-diff -- /nix/var/nix/profiles/system-$$PREVIOUS-link /nix/var/nix/profiles/system-$$CURRENT-link$(NC)\n"; \
+		fi; \
 	else \
-		printf "$(YELLOW)No previous generation found.$(NC)\n"; \
+		printf "$(YELLOW)  ⚠  no previous generation found$(NC)\n"; \
 	fi
-	
 ifndef EMBEDDED
-	@printf "\n$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(GREEN) ✅ Diff complete$(NC)\n"
-	@printf "$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
+	@printf "\n$(GREEN)  ✓ done$(NC)\n"
 endif
+	@printf "\n$(YELLOW)📋 Quick Actions:$(NC)\n"
+	@printf "$(DIM)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
+	@printf "  • compare any two: $(BLUE)make gen-diff GEN1=n GEN2=m$(NC)\n"
+	@printf "  • list generations: $(BLUE)make gen-list$(NC)\n\n"
 
 # ═══════════════════════════════════════════════════════════════
 # 💾 GEN-SIZES - Show disk usage for all generations
