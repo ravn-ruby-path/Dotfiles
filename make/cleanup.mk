@@ -1,16 +1,18 @@
-# ============================================================================
-# Cleanup and Optimization
-# ============================================================================
-# Description: Targets for cleaning old generations and optimizing the store
-# Documentation: docs/src/content/docs/makefile/03-cleanup.mdx
-# Targets: 5 targets
-# ============================================================================
+# ═══════════════════════════════════════════════════════════════
+# 🧹 CLEANUP AND OPTIMIZATION - Nix store management
+# ═══════════════════════════════════════════════════════════════
+# 📚 Documentation: docs/src/content/docs/makefile/03-cleanup.mdx
+# 🎯 Purpose: Remove old generations, optimize and repair the Nix store
+# ──── Overview: 5 targets for store cleanup and optimization ────
 
 .PHONY: sys-gc sys-purge sys-optimize sys-clean-result sys-fix-store
 
-# === Mantenimiento y Espacio ===
+# === Maintenance and Optimization ===
 
-# Flexible cleanup - removes generations older than specified days (default: 30)
+# ═══════════════════════════════════════════════════════════════
+# 🗑️ SYS-GC - Garbage collect generations older than N days
+# ═══════════════════════════════════════════════════════════════
+# ──── Flexible cleanup: DAYS=n (default 30), keeps rollback history ─
 # Usage: make sys-gc [DAYS=n]
 DAYS ?= 30
 sys-gc: ## Clean build artifacts older than specified days (default: 30)
@@ -57,6 +59,10 @@ endif
 	@printf "\n"
 
 
+# ═══════════════════════════════════════════════════════════════
+# 🗑️  SYS-PURGE - Remove ALL old generations (IRREVERSIBLE)
+# ═══════════════════════════════════════════════════════════════
+# ──── Deep Purge: Requires typed confirmation; no rollback possible ─
 # Deep clean - removes ALL old generations (IRREVERSIBLE!)
 # Use with extreme caution - requires confirmation
 sys-purge: ## Aggressive cleanup (removes ALL old generations)
@@ -107,6 +113,10 @@ endif
 		printf "\n"; \
 	fi
 
+# ═══════════════════════════════════════════════════════════════
+# 🚀 SYS-OPTIMIZE - Deduplicate store with hardlinks
+# ═══════════════════════════════════════════════════════════════
+# ──── Optimize: nix-store --optimise; safe, does not delete ──
 # Optimize Nix store by creating hardlinks for identical files
 sys-optimize: ## Optimize nix store
 ifndef EMBEDDED
@@ -136,6 +146,10 @@ endif
 	@printf "• Check space:       $(BLUE)make sys-status$(NC)\n"
 	@printf "\n"
 
+# ═══════════════════════════════════════════════════════════════
+# 🧹 SYS-CLEAN-RESULT - Remove result symlinks from nix build
+# ═══════════════════════════════════════════════════════════════
+# ──── Clean Result: Removes result* symlinks left by nix build ─
 # Remove result symlinks created by nix build commands
 sys-clean-result: ## Remove result symlinks
 ifndef EMBEDDED
@@ -179,6 +193,10 @@ ifndef EMBEDDED
 	@printf "\n"
 endif
 
+# ═══════════════════════════════════════════════════════════════
+# 🔧 SYS-FIX-STORE - Verify and repair the Nix store for corruption
+# ═══════════════════════════════════════════════════════════════
+# ──── Repair: --check-contents --repair; slow on large stores ────
 # Verify and repair the Nix store for corruption
 sys-fix-store: ## Attempt to repair nix store
 ifndef EMBEDDED
