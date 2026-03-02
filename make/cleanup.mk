@@ -4,8 +4,24 @@
 # 📚 Documentation: docs/src/content/docs/makefile/03-cleanup.mdx
 # 🎯 Purpose: Remove old generations, optimize and repair the Nix store
 # ──── Overview: 5 targets for store cleanup and optimization ────
+#
+# 🧪 Dry Run (preview without executing):
+#    make sys-gc          DRY_RUN=1
+#    make sys-purge       DRY_RUN=1
+#    make sys-optimize    DRY_RUN=1
+#    make sys-clean-result DRY_RUN=1
+#    make sys-fix-store   DRY_RUN=1
 
 .PHONY: sys-gc sys-purge sys-optimize sys-clean-result sys-fix-store
+
+# ──── Dry Run: make <target> DRY_RUN=1 to preview without executing ─
+DRY_RUN ?= 0
+export DRY_RUN
+ifeq ($(DRY_RUN),1)
+  EXEC = echo "  ▶ [dry-run]"
+else
+  EXEC =
+endif
 
 # === Maintenance and Optimization ===
 
@@ -43,8 +59,8 @@ endif
 	
 	@printf "\n$(GREEN)2.$(NC) $(BLUE)Running Garbage Collector:$(NC)\n"
 	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
-	@sudo nix-collect-garbage --delete-older-than $(DAYS)d
-	@nix-collect-garbage --delete-older-than $(DAYS)d
+	@$(EXEC) sudo nix-collect-garbage --delete-older-than $(DAYS)d
+	@$(EXEC) nix-collect-garbage --delete-older-than $(DAYS)d
 	
 ifndef EMBEDDED
 	@printf "\n$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
@@ -93,18 +109,26 @@ endif
 	@printf "$(RED)Are you ABSOLUTELY sure? Type 'yes' to continue: $(NC)"; \
 	read -r REPLY; \
 	if [ "$$REPLY" = "yes" ]; then \
-		printf "\n$(YELLOW)Executing deep purge...$(NC)\n\n"; \
-		sudo nix-collect-garbage -d; \
-		nix-collect-garbage -d; \
-		printf "\n$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"; \
-		printf "$(GREEN) ✅ Deep purge completed$(NC)\n"; \
-		printf "$(RED)⚠️  ALL old generations have been deleted$(NC)\n"; \
-		printf "$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"; \
-		printf "\n"; \
-		printf "$(YELLOW)Step 2: Auto-Optimizing Nix Store...$(NC)\n"; \
-		$(MAKE) sys-optimize; \
-		printf "\n$(YELLOW)Step 3: Final Disk Report...$(NC)\n"; \
-		$(MAKE) sys-disk; \
+		if [ "$$DRY_RUN" = "1" ]; then \
+			printf "\n$(YELLOW)  ▶ [dry-run] Would execute:$(NC)\n"; \
+			printf "$(YELLOW)      sudo nix-collect-garbage -d$(NC)\n"; \
+			printf "$(YELLOW)      nix-collect-garbage -d$(NC)\n"; \
+			printf "$(YELLOW)      make sys-optimize$(NC)\n"; \
+			printf "$(YELLOW)      make sys-disk$(NC)\n"; \
+		else \
+			printf "\n$(YELLOW)Executing deep purge...$(NC)\n\n"; \
+			sudo nix-collect-garbage -d; \
+			nix-collect-garbage -d; \
+			printf "\n$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"; \
+			printf "$(GREEN) ✅ Deep purge completed$(NC)\n"; \
+			printf "$(RED)⚠️  ALL old generations have been deleted$(NC)\n"; \
+			printf "$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"; \
+			printf "\n"; \
+			printf "$(YELLOW)Step 2: Auto-Optimizing Nix Store...$(NC)\n"; \
+			$(MAKE) sys-optimize; \
+			printf "\n$(YELLOW)Step 3: Final Disk Report...$(NC)\n"; \
+			$(MAKE) sys-disk; \
+		fi; \
 	else \
 		printf "\n$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"; \
 		printf "$(BLUE)ℹ️  Deep purge cancelled$(NC)\n"; \
@@ -133,7 +157,7 @@ endif
 	@printf "$(YELLOW)This saves space without deleting anything - safe process.$(NC)\n"
 	@printf "$(YELLOW)⏱️  This may take 5-30 minutes depending on store size.$(NC)\n"
 	@printf "\n"
-	@sudo nix-store --optimise
+	@$(EXEC) sudo nix-store --optimise
 	
 ifndef EMBEDDED
 	@printf "\n$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
@@ -182,8 +206,13 @@ endif
 		done; \
 		printf "\n$(GREEN)2.$(NC) $(BLUE)Removing Symlinks:$(NC)\n"; \
 		printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"; \
-		find . -maxdepth 2 -name 'result*' -type l -delete 2>/dev/null; \
-		printf "$(GREEN)✅ Removed $$COUNT symlink(s)$(NC)\n"; \
+		if [ "$$DRY_RUN" = "1" ]; then \
+			printf "  ▶ [dry-run] find . -maxdepth 2 -name 'result*' -type l -delete\n"; \
+			printf "$(YELLOW)  Would remove $$COUNT symlink(s)$(NC)\n"; \
+		else \
+			find . -maxdepth 2 -name 'result*' -type l -delete 2>/dev/null; \
+			printf "$(GREEN)✅ Removed $$COUNT symlink(s)$(NC)\n"; \
+		fi; \
 	fi
 	
 ifndef EMBEDDED
@@ -212,7 +241,9 @@ endif
 	@printf "$(BLUE)Checking content addressability and repairing corruption...$(NC)\n"
 	@printf "$(YELLOW)⚠️  This may take a long time (minutes to hours) on large systems.$(NC)\n"
 	@printf "\n"
-	@if nix-store --verify --check-contents --repair; then \
+	@if [ "$(DRY_RUN)" = "1" ]; then \
+		printf "  ▶ [dry-run] nix-store --verify --check-contents --repair\n"; \
+	elif nix-store --verify --check-contents --repair; then \
 		printf "\n$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"; \
 		printf "$(GREEN) ✅ Store repair completed$(NC)\n"; \
 		printf "$(BLUE)All store paths verified and repaired.$(NC)\n"; \
