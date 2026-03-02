@@ -150,32 +150,26 @@ endif
 # 🐚 DEV-SHELL - Enter the flake development shell
 # ═══════════════════════════════════════════════════════════════
 # ──── Shell: nix develop or nix-shell fallback ───────────────────
-# Enter a development shell (uses flake's devShells or basic nix-shell)
 dev-shell: ## Enter development shell
 ifndef EMBEDDED
 	@printf "\n"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(CYAN)             🐚 Development Shell                       \n$(NC)"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
-endif
-	
-	@printf "$(GREEN)1.$(NC) $(BLUE)Activating Shell:$(NC)\n"
+	@printf "$(CYAN)🐚 dev-shell · flake development shell$(NC)\n"
 	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
-	@if nix flake show $(FLAKE_DIR) 2>/dev/null | grep -q "devShells"; then \
-		printf "$(BLUE)Entering development shell (nix develop)...$(NC)\n"; \
+endif
+	@if [ "$$DRY_RUN" = "1" ]; then \
+		printf "  ▶ [dry-run] nix develop $(FLAKE_DIR)\n"; \
+	elif nix flake show $(FLAKE_DIR) 2>/dev/null | grep -q "devShells"; then \
 		nix develop $(FLAKE_DIR); \
 	else \
-		printf "$(YELLOW)⚠️  No devShells configured in flake, using nix-shell...$(NC)\n"; \
+		printf "$(YELLOW)  ⚠  no devShells in flake — falling back to nix-shell$(NC)\n"; \
 		nix-shell; \
 	fi
-	
 ifndef EMBEDDED
-	@printf "\n$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(GREEN) ✅ Shell session ended$(NC)\n"
-	@printf "$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
+	@printf "\n$(GREEN)  ✓ session ended$(NC)\n"
 endif
+	@printf "\n$(YELLOW)📋 Quick Actions:$(NC)\n"
+	@printf "$(DIM)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
+	@printf "  • open nix repl: $(BLUE)make dev-repl$(NC)\n\n"
 
 # ═══════════════════════════════════════════════════════════════
 # 🖥️  DEV-VM - Build and run a NixOS virtual machine for testing
