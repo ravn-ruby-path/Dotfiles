@@ -58,8 +58,8 @@ ifndef EMBEDDED
 endif
 	@printf "\n$(YELLOW)📋 Quick Actions:$(NC)\n"
 	@printf "$(DIM)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
-	@printf "$(DIM)  ·  make sys-status    check disk usage\n"
-	@printf "  ·  make sys-optimize  deduplicate nix store$(NC)\n\n"
+	@printf "  · $(BLUE) make sys-status   $(NC)$(DIM) check disk usage$(NC)\n"
+	@printf "  · $(BLUE) make sys-optimize $(NC)$(DIM) deduplicate nix store$(NC)\n\n"
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -100,8 +100,8 @@ endif
 		fi; \
 		printf "\n$(YELLOW)📋 Quick Actions:$(NC)\n"; \
 		printf "$(DIM)────────────────────────────────────────────────────────────────────────────────$(NC)\n"; \
-		printf "$(DIM)  ·  make sys-status    check freed disk space\n"; \
-		printf "  ·  make gen-list      verify no old generations remain$(NC)\n\n"; \
+		printf "  · $(BLUE) make sys-status $(NC)$(DIM) check freed disk space$(NC)\n"; \
+		printf "  · $(BLUE) make gen-list   $(NC)$(DIM) verify no old generations remain$(NC)\n\n"; \
 	else \
 		printf "\n$(DIM)  cancelled — no changes made$(NC)\n\n"; \
 	fi
@@ -114,30 +114,19 @@ endif
 sys-optimize: ## Optimize nix store
 ifndef EMBEDDED
 	@printf "\n"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(CYAN)             🚀 Optimizing Nix Store                    \n$(NC)"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
-endif
-	
-	@printf "$(GREEN)1.$(NC) $(BLUE)Optimizing Store:$(NC)\n"
+	@printf "$(CYAN)🚀 sys-optimize · deduplicate nix store$(NC)\n"
 	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
-	@printf "$(BLUE)Finding identical files and creating hardlinks...$(NC)\n"
-	@printf "$(YELLOW)This saves space without deleting anything - safe process.$(NC)\n"
-	@printf "$(YELLOW)⏱️  This may take 5-30 minutes depending on store size.$(NC)\n"
+endif
+	@printf "  finds identical files and replaces them with hardlinks\n"
+	@printf "$(DIM)  safe — nothing is deleted  ·  may take 5–30 min$(NC)\n"
 	@printf "\n"
 	@$(EXEC) sudo nix-store --optimise
-	
 ifndef EMBEDDED
-	@printf "\n$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(GREEN) ✅ Store optimization completed$(NC)\n"
-	@printf "$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
+	@printf "\n$(GREEN)  ✓ done$(NC)\n"
 endif
-	@printf "$(YELLOW)📋 Quick Actions:$(NC)\n"
-	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
-	@printf "• Check space:       $(BLUE)make sys-status$(NC)\n"
-	@printf "\n"
+	@printf "\n$(YELLOW)📋 Quick Actions:$(NC)\n"
+	@printf "$(DIM)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
+	@printf "  · $(BLUE) make sys-status $(NC)$(DIM) check freed disk space$(NC)\n\n"
 
 # ═══════════════════════════════════════════════════════════════
 # 🧹 SYS-CLEAN-RESULT - Remove result symlinks from nix build
