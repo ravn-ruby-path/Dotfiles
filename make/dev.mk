@@ -4,8 +4,22 @@
 # 📚 Documentation: docs/src/content/docs/makefile/08-dev.mdx
 # 🎯 Purpose: Host listing, package search, REPL, shell, VM and closure analysis
 # ──── Overview: 7 targets for development and inspection tasks ────
+#
+# 🧪 Dry Run (preview without executing):
+#    make dev-repl   DRY_RUN=1
+#    make dev-shell  DRY_RUN=1
+#    make dev-vm     DRY_RUN=1
 
 .PHONY: dev-hosts dev-search dev-search-inst dev-repl dev-shell dev-vm dev-size
+
+# ──── Dry Run: make <target> DRY_RUN=1 to preview without executing ─
+DRY_RUN ?= 0
+export DRY_RUN
+ifeq ($(DRY_RUN),1)
+  EXEC = echo "  ▶ [dry-run]"
+else
+  EXEC =
+endif
 
 # === Analysis and Development ===
 
@@ -13,35 +27,23 @@
 # 🖥️  DEV-HOSTS - List all host configurations defined in the flake
 # ═══════════════════════════════════════════════════════════════
 # ──── Hosts: Scans hosts/ directory for NixOS configuration names ──
-# List all available hosts defined in the flake
 dev-hosts: ## List all available hosts
 ifndef EMBEDDED
 	@printf "\n"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(CYAN)             🖥️  NixOS Hosts in Flake                   \n$(NC)"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
-endif
-	
-	@printf "$(GREEN)1.$(NC) $(BLUE)Scanning Configurations:$(NC)\n"
+	@printf "$(CYAN)🖥️  dev-hosts · nixos hosts in flake$(NC)\n"
 	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
-	@printf "$(BLUE)Searching for host configurations in $(FLAKE_DIR)/hosts...$(NC)\n"
+endif
 	@if [ -d "hosts" ]; then \
 		find hosts -maxdepth 1 -mindepth 1 -type d -not -path '*/.*' | sed 's|^hosts/|  • |'; \
 	else \
-		printf "$(RED)✗ hosts/ directory not found$(NC)\n"; \
+		printf "$(RED)  ✗ hosts/ directory not found$(NC)\n"; \
 	fi
-	
 ifndef EMBEDDED
-	@printf "\n$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(GREEN) ✅ Scan complete$(NC)\n"
-	@printf "$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
+	@printf "\n$(GREEN)  ✓ done$(NC)\n"
 endif
-	@printf "$(YELLOW)📋 Quick Actions:$(NC)\n"
-	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
-	@printf "• Deploy host:       $(BLUE)make sys-apply HOSTNAME=<name>$(NC)\n"
-	@printf "\n"
+	@printf "\n$(YELLOW)📋 Quick Actions:$(NC)\n"
+	@printf "$(DIM)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
+	@printf "  • deploy a host: $(BLUE)make sys-apply HOSTNAME=<name>$(NC)\n\n"
 
 # Search for a package in nixpkgs using nix-search
 dev-search: ## Search nixpkgs for package (use PKG=name)
