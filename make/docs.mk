@@ -4,8 +4,24 @@
 # 📚 Documentation: docs/src/content/docs/makefile/01-docs.mdx
 # 🎯 Purpose: Display help, usage examples and manage the Astro docs site
 # ──── Overview: 7 targets for help display and docs site management ─
+#
+# 🧪 Dry Run (preview without executing):
+#    make doc-dev     DRY_RUN=1   · skip starting dev server
+#    make doc-build   DRY_RUN=1   · skip npm run build
+#    make doc-install DRY_RUN=1   · skip npm install
+#    make doc-clean   DRY_RUN=1   · skip rm -rf
+#    (help, help-examples, doc-local are read-only)
 
 .PHONY: help help-examples doc-local doc-dev doc-build doc-install doc-clean
+
+# ──── Dry Run: make <target> DRY_RUN=1 to preview without executing ─
+DRY_RUN ?= 0
+export DRY_RUN
+ifeq ($(DRY_RUN),1)
+  EXEC = echo "  ▶ [dry-run]"
+else
+  EXEC =
+endif
 
 # === Help and Documentation ===
 
@@ -13,29 +29,23 @@
 # 📖 HELP - Show all available commands organized by category
 # ═══════════════════════════════════════════════════════════════
 # ──── Uses AWK to parse ## comments into a formatted menu ─────
-# Main help target - shows all available commands organized by category
-# Uses AWK to parse inline comments (##) and display them in a formatted menu
 help: ## Show this help message
 ifndef EMBEDDED
 	@printf "\n"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(CYAN)             📚 System Commands & Documentation         \n$(NC)"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
-endif
-	
-	@printf "$(GREEN)1.$(NC) $(BLUE)Command Reference:$(NC)\n"
+	@printf "$(CYAN)📖 help · all available commands$(NC)\n"
 	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
+endif
 	@grep -hE '^[a-zA-Z0-9_-]+:.*##' $(MAKEFILE_LIST) | \
 	sort | \
-	awk 'BEGIN {FS=":.*##"} /^[a-zA-Z0-9_-]+:.*##/ {desc[$$1]=$$2} \
+	awk -v PURPLE="$(PURPLE)" -v GREEN="$(GREEN)" -v DIM="$(DIM)" -v NC="$(NC)" \
+	'BEGIN {FS=":.*##"} /^[a-zA-Z0-9_-]+:.*##/ {desc[$$1]=$$2} \
 	function print_cat(title, list,    n,i,cmd) { \
-		printf "\n%s%s%s\n", BLUE, title, NC; \
+		printf "\n%s%s%s\n", PURPLE, title, NC; \
 		n = split(list, arr, " "); \
 		for (i=1; i<=n; i++) { \
 			cmd = arr[i]; \
 			if (cmd in desc) { \
-				printf "  %s%-25s%s %s\n", GREEN, cmd, NC, desc[cmd]; \
+				printf "  %s%-25s%s %s%s%s\n", GREEN, cmd, NC, DIM, desc[cmd], NC; \
 			} \
 		} \
 	} \
@@ -50,18 +60,13 @@ endif
 		print_cat("Development Tools", "dev-hosts dev-search dev-search-inst dev-repl dev-shell dev-vm dev-size"); \
 		print_cat("Formatting & Linting", "fmt-check fmt-lint fmt-tree fmt-diff"); \
 	}'
-	
 ifndef EMBEDDED
-	@printf "\n$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(GREEN) ✅ End of help$(NC)\n"
-	@printf "$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
+	@printf "\n$(GREEN)  ✓ done$(NC)\n"
 endif
-	@printf "$(YELLOW)📋 Quick Actions:$(NC)\n"
-	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
-	@printf "• Usage examples:    $(BLUE)make help-examples$(NC)\n"
-	@printf "• Legacy aliases:    $(BLUE)make help-aliases$(NC)\n"
-	@printf "\n"
+	@printf "\n$(YELLOW)📋 Quick Actions:$(NC)\n"
+	@printf "$(DIM)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
+	@printf "  • usage examples: $(BLUE)make help-examples$(NC)\n"
+	@printf "  • legacy aliases: $(BLUE)make help-aliases$(NC)\n\n"
 
 # ═══════════════════════════════════════════════════════════════
 # 💡 HELP-EXAMPLES - Show usage examples for common workflows
