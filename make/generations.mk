@@ -71,85 +71,57 @@ endif
 # ⏪ GEN-ROLLBACK-COMMIT - Rollback to a specific git commit and rebuild
 # ═══════════════════════════════════════════════════════════════
 # ──── Requires COMMIT=<hash> — detaches HEAD at that commit ─────
-# Rollback to a specific commit and rebuild system
 gen-rollback-commit: ## Rollback to specific commit and rebuild (use COMMIT=hash)
-	@if [ -z "$$(COMMIT)" ]; then \
-		printf "\n"; \
-		printf "$(RED)❌ Error: COMMIT parameter is required$(NC)\n"; \
-		printf "$(YELLOW)Usage: make gen-rollback-commit COMMIT=<hash>$(NC)\n"; \
-		exit 1; \
-	fi
 ifndef EMBEDDED
 	@printf "\n"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(CYAN)             ⏪ Rollback to Specific Commit             \n$(NC)"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
+	@printf "$(CYAN)⏪ gen-rollback-commit · revert to specific commit$(NC)\n"
+	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
 endif
-	
-	@printf "$(GREEN)1.$(NC) $(BLUE)Verifying Commit:$(NC)\n"
-	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
-	@printf "$(BLUE)Checking commit $(YELLOW)$$(COMMIT)$(BLUE)...$(NC)\n"
-	@if ! git rev-parse --verify "$$(COMMIT)" >/dev/null 2>&1; then \
-		printf "$(RED)❌ Commit '$$(COMMIT)' not found$(NC)\n"; \
-		printf "$(YELLOW)Check git log for correct hash.$(NC)\n\n"; \
-		exit 1; \
-	fi
-	@COMMIT_FULL=$$(git rev-parse "$$(COMMIT)"); \
-	COMMIT_SHORT=$$(git rev-parse --short "$$(COMMIT)"); \
-	COMMIT_MSG=$$(git log -1 --format="%s" "$$(COMMIT)"); \
-	COMMIT_DATE=$$(git log -1 --format="%ci" "$$(COMMIT)"); \
-	printf "$(GREEN)✓ Commit found:$(NC)\n"; \
-	printf "  $(CYAN)Short Hash:$(NC) $$COMMIT_SHORT\n"; \
-	printf "  $(CYAN)Message:   $(NC) $$COMMIT_MSG\n"; \
-	printf "  $(CYAN)Date:      $(NC) $$COMMIT_DATE\n\n"; \
-	
-	@printf "$(GREEN)2.$(NC) $(BLUE)Warning:$(NC)\n"
-	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
-	@printf "$(RED)⚠️  CRITICAL WARNING:$(NC)\n"
-	@printf "$(YELLOW)  • HEAD will be detached at this commit$(NC)\n"
-	@printf "$(YELLOW)  • System will be rebuilt from this state$(NC)\n"
-	@printf "$(YELLOW)  • Uncommitted changes will be LOST$(NC)\n\n"
-	
-	@printf "$(RED)Type 'yes' to proceed: $(NC)"; \
-	read -r REPLY; \
-	if [ "$$REPLY" = "yes" ]; then \
-		printf "\n$(GREEN)3.$(NC) $(BLUE)Executing Rollback:$(NC)\n"; \
-		printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"; \
-		printf "$(YELLOW)Saving current state...$(NC)\n"; \
-		CURRENT_BRANCH=$$(git branch --show-current 2>/dev/null || echo "detached"); \
-		CURRENT_COMMIT=$$(git rev-parse HEAD); \
-		printf "$(YELLOW)Checking out $$COMMIT_SHORT...$(NC)\n"; \
-		if git checkout "$$(COMMIT)" >/dev/null 2>&1; then \
-			printf "$(GREEN)✓ Checkout successful$(NC)\n"; \
-			printf "$(YELLOW)Rebuilding system...$(NC)\n"; \
-			if $(MAKE) --no-print-directory sys-apply-core; then \
-				printf "\n$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"; \
-				printf "$(GREEN) ✅ Rollback successful$(NC)\n"; \
-				printf "$(BLUE)System rebuilt from commit: $$COMMIT_SHORT$(NC)\n"; \
-				printf "$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"; \
-				printf "\n$(YELLOW)Note:$(NC) Repository is now in detached HEAD state at $$COMMIT_SHORT\n"; \
-				printf "$(YELLOW)To return to main:$(NC) git checkout main\n\n"; \
-			else \
-				printf "\n$(RED)❌ Rebuild failed$(NC)\n"; \
-				printf "$(YELLOW)Reverting to previous state...$(NC)\n"; \
-				git checkout "$$CURRENT_COMMIT" >/dev/null 2>&1; \
-				if [ "$$CURRENT_BRANCH" != "detached" ]; then \
-					git checkout "$$CURRENT_BRANCH" >/dev/null 2>&1; \
-				fi; \
-				printf "$(BLUE)Repository restored$(NC)\n\n"; \
-				exit 1; \
-			fi; \
-		else \
-			printf "$(RED)❌ Checkout failed$(NC)\n"; \
-			printf "$(YELLOW)Check for uncommitted changes (git status)$(NC)\n\n"; \
-			exit 1; \
-		fi; \
+	@if [ -z "$(COMMIT)" ]; then \
+		printf "$(YELLOW)  usage: make gen-rollback-commit COMMIT=<hash>$(NC)\n\n"; \
 	else \
-		printf "\n$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"; \
-		printf "$(BLUE)ℹ️  Rollback cancelled$(NC)\n"; \
-		printf "$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"; \
-		printf "\n"; \
+		if ! git rev-parse --verify "$(COMMIT)" >/dev/null 2>&1; then \
+			printf "$(RED)  ❌ commit '$(COMMIT)' not found$(NC)\n"; \
+			printf "$(DIM)  check git log for the correct hash$(NC)\n\n"; \
+		else \
+			COMMIT_SHORT=$$(git rev-parse --short "$(COMMIT)"); \
+			COMMIT_MSG=$$(git log -1 --format="%s" "$(COMMIT)"); \
+			COMMIT_DATE=$$(git log -1 --format="%ci" "$(COMMIT)"); \
+			printf "$(GREEN)  ✓ commit found:$(NC)\n"; \
+			printf "$(DIM)    hash:    $$COMMIT_SHORT$(NC)\n"; \
+			printf "$(DIM)    message: $$COMMIT_MSG$(NC)\n"; \
+			printf "$(DIM)    date:    $$COMMIT_DATE$(NC)\n\n"; \
+			printf "$(RED)  ⚠  HEAD will be detached · uncommitted changes will be LOST$(NC)\n\n"; \
+			printf "$(RED)  type 'yes' to confirm: $(NC)"; \
+			read -r REPLY; \
+			if [ "$$REPLY" = "yes" ]; then \
+				printf "\n$(DIM)  checking out $$COMMIT_SHORT...$(NC)\n"; \
+				CURRENT_BRANCH=$$(git branch --show-current 2>/dev/null || echo "detached"); \
+				CURRENT_COMMIT=$$(git rev-parse HEAD); \
+				if [ "$$DRY_RUN" = "1" ]; then \
+					echo "  ▶ [dry-run] git checkout $(COMMIT)"; \
+					echo "  ▶ [dry-run] make sys-apply-core"; \
+				else \
+					if git checkout "$(COMMIT)" >/dev/null 2>&1; then \
+						printf "$(DIM)  rebuilding system...$(NC)\n"; \
+						if $(MAKE) --no-print-directory sys-apply-core; then \
+							printf "\n$(GREEN)  ✓ system rebuilt from commit $$COMMIT_SHORT$(NC)\n"; \
+							printf "$(DIM)  repo is in detached HEAD — run: git checkout main$(NC)\n\n"; \
+						else \
+							printf "\n$(RED)  ❌ rebuild failed — reverting$(NC)\n"; \
+							git checkout "$$CURRENT_COMMIT" >/dev/null 2>&1; \
+							if [ "$$CURRENT_BRANCH" != "detached" ]; then git checkout "$$CURRENT_BRANCH" >/dev/null 2>&1; fi; \
+							printf "$(DIM)  repository restored$(NC)\n\n"; \
+						fi; \
+					else \
+						printf "$(RED)  ❌ checkout failed$(NC)\n"; \
+						printf "$(DIM)  check for uncommitted changes: git status$(NC)\n\n"; \
+					fi; \
+				fi; \
+			else \
+				printf "\n$(DIM)  rollback cancelled — no changes made$(NC)\n\n"; \
+			fi; \
+		fi; \
 	fi
 
 # ═══════════════════════════════════════════════════════════════
