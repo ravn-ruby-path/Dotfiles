@@ -72,58 +72,39 @@ endif
 # 💡 HELP-EXAMPLES - Show usage examples for common workflows
 # ═══════════════════════════════════════════════════════════════
 # ──── Displays categorized practical command examples ──────────
-# Show detailed usage examples for commands that require parameters
-# Organized by category with practical examples
 help-examples: ## Show usage examples for common workflows
 ifndef EMBEDDED
 	@printf "\n"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(CYAN)             💡 Common Workflows & Examples             \n$(NC)"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
+	@printf "$(CYAN)💡 help-examples · common workflows$(NC)\n"
+	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
 endif
-
-	@printf "$(GREEN)1.$(NC) $(BLUE)System Maintenance:$(NC)\n"
-	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
-	@printf "  $(GREEN)make sys-apply$(NC)           # Apply system configuration (rebuild switch)\n"
-	@printf "  $(GREEN)make sys-apply-fast$(NC)      # Faster apply (skips some checks)\n"
-	@printf "  $(GREEN)make sys-test$(NC)            # Build and test (dry-run) without applying\n"
-	@printf "  $(GREEN)make sys-status$(NC)          # Show system health and status\n"
-
-	@printf "\n$(GREEN)2.$(NC) $(BLUE)Update Management:$(NC)\n"
-	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
-	@printf "  $(GREEN)make upd-all$(NC)             # Update all flake inputs and apply changes\n"
-	@printf "  $(GREEN)make upd-input PKG=nixpkgs$(NC) # Update specific input (e.g. nixpkgs)\n"
-	@printf "  $(GREEN)make upd-check$(NC)           # Check for updates without applying\n"
-
-	@printf "\n$(GREEN)3.$(NC) $(BLUE)Garbage Collection:$(NC)\n"
-	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
-	@printf "  $(GREEN)make sys-gc$(NC)              # Standard cleanup (older than 30 days)\n"
-	@printf "  $(GREEN)make sys-gc DAYS=7$(NC)       # Aggressive cleanup (older than 7 days)\n"
-	@printf "  $(GREEN)make sys-optimize$(NC)        # Optimize nix store (deduplication)\n"
-
-	@printf "\n$(GREEN)4.$(NC) $(BLUE)Development Tools:$(NC)\n"
-	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
-	@printf "  $(GREEN)make dev-shell$(NC)           # Enter development shell\n"
-	@printf "  $(GREEN)make dev-search PKG=git$(NC)  # Search for 'git' in nixpkgs\n"
-	@printf "  $(GREEN)make dev-vm HOST=laptop$(NC)  # Build VM for 'laptop' host\n"
-	
-	@printf "\n$(GREEN)5.$(NC) $(BLUE)Git Operations:$(NC)\n"
-	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
-	@printf "  $(GREEN)make git-status$(NC)          # Show repository status\n"
-	@printf "  $(GREEN)make git-commit$(NC)          # Commit changes with timestamp\n"
-	@printf "  $(GREEN)make sys-deploy$(NC)          # Full deployment cycle (format, test, commit, push)\n"
-
+	@printf "\n$(PURPLE)System Maintenance:$(NC)\n"
+	@printf "  $(GREEN)make sys-apply$(NC)              $(DIM)# Apply system configuration (rebuild switch)$(NC)\n"
+	@printf "  $(GREEN)make sys-apply-fast$(NC)         $(DIM)# Faster apply (skips some checks)$(NC)\n"
+	@printf "  $(GREEN)make sys-test$(NC)               $(DIM)# Build and test without applying$(NC)\n"
+	@printf "  $(GREEN)make sys-status$(NC)             $(DIM)# Show system health and status$(NC)\n"
+	@printf "\n$(PURPLE)Update Management:$(NC)\n"
+	@printf "  $(GREEN)make upd-all$(NC)                $(DIM)# Update all flake inputs and apply changes$(NC)\n"
+	@printf "  $(GREEN)make upd-input PKG=nixpkgs$(NC)  $(DIM)# Update specific input$(NC)\n"
+	@printf "  $(GREEN)make upd-check$(NC)              $(DIM)# Check for updates without applying$(NC)\n"
+	@printf "\n$(PURPLE)Garbage Collection:$(NC)\n"
+	@printf "  $(GREEN)make sys-gc$(NC)                 $(DIM)# Standard cleanup (older than 30 days)$(NC)\n"
+	@printf "  $(GREEN)make sys-gc DAYS=7$(NC)          $(DIM)# Aggressive cleanup (older than 7 days)$(NC)\n"
+	@printf "  $(GREEN)make sys-optimize$(NC)           $(DIM)# Optimize nix store (deduplication)$(NC)\n"
+	@printf "\n$(PURPLE)Development Tools:$(NC)\n"
+	@printf "  $(GREEN)make dev-shell$(NC)              $(DIM)# Enter development shell$(NC)\n"
+	@printf "  $(GREEN)make dev-search PKG=git$(NC)     $(DIM)# Search for 'git' in nixpkgs$(NC)\n"
+	@printf "  $(GREEN)make dev-vm HOST=laptop$(NC)     $(DIM)# Build VM for 'laptop' host$(NC)\n"
+	@printf "\n$(PURPLE)Git Operations:$(NC)\n"
+	@printf "  $(GREEN)make git-status$(NC)             $(DIM)# Show repository status$(NC)\n"
+	@printf "  $(GREEN)make git-commit$(NC)             $(DIM)# Commit changes with timestamp$(NC)\n"
+	@printf "  $(GREEN)make sys-deploy$(NC)             $(DIM)# Full deployment cycle (format, test, commit, push)$(NC)\n"
 ifndef EMBEDDED
-	@printf "\n$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(GREEN) ✅ End of examples$(NC)\n"
-	@printf "$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
+	@printf "\n$(GREEN)  ✓ done$(NC)\n"
 endif
-	@printf "$(YELLOW)📋 Quick Actions:$(NC)\n"
-	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
-	@printf "• View commands:     $(BLUE)make help$(NC)\n"
-	@printf "\n"
+	@printf "\n$(YELLOW)📋 Quick Actions:$(NC)\n"
+	@printf "$(DIM)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
+	@printf "  • view all commands: $(BLUE)make help$(NC)\n\n"
 
 # ═══════════════════════════════════════════════════════════════
 # 📂 DOC-LOCAL - Show local documentation files
