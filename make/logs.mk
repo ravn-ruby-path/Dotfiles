@@ -1,15 +1,18 @@
-# ============================================================================
-# Diagnostics and Logs
-# ============================================================================
-# Description: Targets for system diagnostics, logs, and monitoring
-# Documentation: docs/src/content/docs/makefile/07-logs.mdx
-# Targets: 6 targets
-# ============================================================================
+# ═══════════════════════════════════════════════════════════════
+# 📊 DIAGNOSTICS AND LOGS - System health, disk and journal monitoring
+# ═══════════════════════════════════════════════════════════════
+# 📚 Documentation: docs/src/content/docs/makefile/07-logs.mdx
+# 🎯 Purpose: Monitor system status, network, disk usage and journal logs
+# ──── Overview: 8 targets for diagnostics, logs and network analysis ────
 
-.PHONY: sys-status log-net log-watch log-boot log-err log-svc
+.PHONY: sys-status sys-disk log-net log-watch log-boot log-err log-svc log-net-enhanced
 
 # === Health and Diagnostics ===
 
+# ═══════════════════════════════════════════════════════════════
+# 🏥 SYS-STATUS - Combined dashboard and detailed system status
+# ═══════════════════════════════════════════════════════════════
+# ──── Reports hostname, NixOS version, disk, generations and git state 
 # Combined dashboard and detailed system status
 sys-status: ## System health dashboard and report
 	@printf "\n"
@@ -64,6 +67,10 @@ sys-status: ## System health dashboard and report
 	@printf "$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
 	@printf "\n"
 
+# ═══════════════════════════════════════════════════════════════
+# 💾 SYS-DISK - Detailed disk usage report for key partitions
+# ═══════════════════════════════════════════════════════════════
+# ──── Uses duf if available, falls back to df ────────────────
 # Detailed disk usage report for key partitions and directories
 # Uses duf if available for pretty printing, otherwise falls back to df
 sys-disk: ## Show disk usage info
@@ -101,8 +108,10 @@ sys-disk: ## Show disk usage info
 	@printf "\n"
  endif
 
-# --- Network Diagnostics ---
-
+# ═══════════════════════════════════════════════════════════════
+# 🌐 LOG-NET - Comprehensive network diagnostics
+# ═══════════════════════════════════════════════════════════════
+# ──── Tests DNS resolution, ping and network throughput ────────
 # Comprehensive network diagnostics including DNS, connectivity, and performance tests
 # Tests DNS resolution, ping connectivity, and network throughput
 log-net: ## Run comprehensive network diagnostics
@@ -133,6 +142,10 @@ log-net: ## Run comprehensive network diagnostics
 	@printf "$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
 	@printf "\n"
 
+# ═══════════════════════════════════════════════════════════════
+# 📈 LOG-WATCH - Monitor system logs in real-time
+# ═══════════════════════════════════════════════════════════════
+# ──── Runs journalctl -f (follow mode), Ctrl+C to exit ──────
 # Monitor system logs in real-time using journalctl follow mode
 # Continuously displays new log entries as they are written
 log-watch: ## Watch system logs in real-time (follow mode)
@@ -146,6 +159,10 @@ log-watch: ## Watch system logs in real-time (follow mode)
 	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
 	@journalctl -f
 
+# ═══════════════════════════════════════════════════════════════
+# 📋 LOG-BOOT - Display error and alert logs from the current boot
+# ═══════════════════════════════════════════════════════════════
+# ──── journalctl -b -p err..alert, last 50 entries ──────────
 # Display error and alert logs from the current boot session
 # Shows systemd logs with priority err and alert from current boot
 log-boot: ## Show boot logs
@@ -164,6 +181,10 @@ log-boot: ## Show boot logs
 	@printf "$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
 	@printf "\n"
 
+# ═══════════════════════════════════════════════════════════════
+# 📋 LOG-ERR - Display recent error-level logs
+# ═══════════════════════════════════════════════════════════════
+# ──── Shows last 50 error messages with timestamps ──────────
 # Display recent error-level logs from systemd journal
 # Shows the last 50 error messages with timestamps
 log-err: ## Show recent error logs
@@ -188,6 +209,10 @@ log-err: ## Show recent error logs
 	@printf "$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
 	@printf "\n"
 
+# ═══════════════════════════════════════════════════════════════
+# 📋 LOG-SVC - Display logs for a specific systemd service
+# ═══════════════════════════════════════════════════════════════
+# ──── Requires SVC=<name> e.g. make log-svc SVC=sshd ───────
 # Display logs for a specific systemd service using journalctl
 # Shows recent logs for the specified service (use SVC=name parameter)
 log-svc: ## Show logs for specific service (use SVC=name)
@@ -230,7 +255,10 @@ log-svc: ## Show logs for specific service (use SVC=name)
 	@printf "$(GREEN) ✅ Log display complete$(NC)\n"
 	@printf "$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
 	@printf "\n"
-# --- Enhanced Network Diagnostics ---
+# ═══════════════════════════════════════════════════════════════
+# 🌐 LOG-NET-ENHANCED - Extended network diagnostics with auto-verification
+# ═══════════════════════════════════════════════════════════════
+# ──── Checks DNS, firewall, throughput, MTR and TCP optimizations ─
 # NEW: Enhanced version with automatic DNS, firewall, and optimization verification
 # You can test this without affecting the original 'make log-net' command
 # Usage: make log-net-enhanced
