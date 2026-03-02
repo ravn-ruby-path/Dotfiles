@@ -50,125 +50,101 @@ endif
 # ═══════════════════════════════════════════════════════════════
 # ──── Search: nix search nixpkgs <pkg>; requires PKG=name ────
 dev-search: ## Search nixpkgs for package (use PKG=name)
-	@if [ -z "$(PKG)" ]; then \
-		printf "$(RED)  ✗ PKG is required — usage: make dev-search PKG=<name>$(NC)\n"; \
-		exit 1; \
-	fi
 ifndef EMBEDDED
 	@printf "\n"
 	@printf "$(CYAN)🔍 dev-search · nixpkgs search$(NC)\n"
 	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
 endif
-	@nix search nixpkgs $(PKG)
+	@if [ -z "$(PKG)" ]; then \
+		printf "$(YELLOW)  usage: make dev-search PKG=<name>$(NC)\n\n"; \
+	else \
+		nix search nixpkgs $(PKG); \
+		printf "\n$(YELLOW)📋 Quick Actions:$(NC)\n"; \
+		printf "$(DIM)────────────────────────────────────────────────────────────────────────────────$(NC)\n"; \
+		printf "  • search installed packages: $(BLUE)make dev-search-inst PKG=$(PKG)$(NC)\n\n"; \
+	fi
 ifndef EMBEDDED
-	@printf "\n$(GREEN)  ✓ done$(NC)\n"
+	@if [ -n "$(PKG)" ]; then printf "$(GREEN)  ✓ done$(NC)\n"; fi
 endif
-	@printf "\n$(YELLOW)📋 Quick Actions:$(NC)\n"
-	@printf "$(DIM)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
-	@printf "  • search installed packages: $(BLUE)make dev-search-inst PKG=$(PKG)$(NC)\n\n"
 
 # ═══════════════════════════════════════════════════════════════
 # 🔍 DEV-SEARCH-INST - Search among already-installed packages
 # ═══════════════════════════════════════════════════════════════
 # ──── Installed search: PATH, nix-env, current-system, HM profiles ─
-# Search for a package in currently installed system/user profiles
 dev-search-inst: ## Search installed packages (use PKG=name)
-	@if [ -z "$$(PKG)" ]; then \
-		printf "\n"; \
-		printf "$(RED)❌ Error: PKG parameter is required$(NC)\n"; \
-		printf "$(YELLOW)Usage: make dev-search-inst PKG=<package-name>$(NC)\n"; \
-		exit 1; \
-	fi
-
 ifndef EMBEDDED
 	@printf "\n"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(CYAN)             🔍 Searching Installed Packages            \n$(NC)"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
+	@printf "$(CYAN)🔍 dev-search-inst · searching installed packages$(NC)\n"
+	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
 endif
-	
-	@printf "$(GREEN)1.$(NC) $(BLUE)In PATH (which):$(NC)\n"
-	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
-	@PKG_PATH=$$(which $(PKG) 2>/dev/null || true); \
-	if [ -n "$$PKG_PATH" ]; then \
-		printf "  $(GREEN)✓ Found:$(NC) $$PKG_PATH\n"; \
-		PKG_STORE_PATH=$$(readlink -f "$$PKG_PATH" 2>/dev/null || true); \
-		if [ -n "$$PKG_STORE_PATH" ]; then \
-			printf "  $(BLUE)Store path:$(NC) $$PKG_STORE_PATH\n"; \
-		fi; \
+	@if [ -z "$(PKG)" ]; then \
+		printf "$(YELLOW)  usage: make dev-search-inst PKG=<name>$(NC)\n\n"; \
 	else \
-		printf "  $(YELLOW)Not found in PATH$(NC)\n"; \
-	fi
-	
-	@printf "\n$(GREEN)2.$(NC) $(BLUE)User environment (nix-env):$(NC)\n"
-	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
-	@USER_PKGS=$$(nix-env -q 2>/dev/null | grep -i "$(PKG)" || true); \
-	if [ -n "$$USER_PKGS" ]; then \
-		echo "$$USER_PKGS" | sed 's/^/  /'; \
-	else \
-		printf "  $(YELLOW)Not found$(NC)\n"; \
-	fi
-	
-	@printf "\n$(GREEN)3.$(NC) $(BLUE)System packages (current-system):$(NC)\n"
-	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
-	@SYSTEM_PKGS=$$(nix-store -q --references /run/current-system 2>/dev/null | grep -i "$(PKG)" | head -10 || true); \
-	if [ -n "$$SYSTEM_PKGS" ]; then \
-		echo "$$SYSTEM_PKGS" | sed 's/^/  /'; \
-	else \
-		printf "  $(YELLOW)Not found$(NC)\n"; \
-	fi
-	
-	@printf "\n$(GREEN)4.$(NC) $(BLUE)Home Manager profiles:$(NC)\n"
-	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
-	@if [ -d "/etc/profiles/per-user" ]; then \
-		HM_PKGS=$$(find /etc/profiles/per-user -name "$(PKG)" -type f 2>/dev/null | head -5 || true); \
-		if [ -n "$$HM_PKGS" ]; then \
-			echo "$$HM_PKGS" | sed 's/^/  /'; \
+		printf "$(DIM)  PATH:$(NC)\n"; \
+		PKG_PATH=$$(which $(PKG) 2>/dev/null || true); \
+		if [ -n "$$PKG_PATH" ]; then \
+			printf "  $(GREEN)✓$(NC) $$PKG_PATH\n"; \
+			PKG_STORE_PATH=$$(readlink -f "$$PKG_PATH" 2>/dev/null || true); \
+			[ -n "$$PKG_STORE_PATH" ] && printf "  $(DIM)  → $$PKG_STORE_PATH$(NC)\n"; \
 		else \
-			printf "  $(YELLOW)Not found$(NC)\n"; \
+			printf "  $(DIM)  not found$(NC)\n"; \
 		fi; \
-	else \
-		printf "  $(YELLOW)Home Manager profiles not found$(NC)\n"; \
+		printf "\n$(DIM)  nix-env:$(NC)\n"; \
+		USER_PKGS=$$(nix-env -q 2>/dev/null | grep -i "$(PKG)" || true); \
+		if [ -n "$$USER_PKGS" ]; then \
+			echo "$$USER_PKGS" | sed 's/^/  /'; \
+		else \
+			printf "  $(DIM)  not found$(NC)\n"; \
+		fi; \
+		printf "\n$(DIM)  current-system:$(NC)\n"; \
+		SYSTEM_PKGS=$$(nix-store -q --references /run/current-system 2>/dev/null | grep -i "$(PKG)" | head -10 || true); \
+		if [ -n "$$SYSTEM_PKGS" ]; then \
+			echo "$$SYSTEM_PKGS" | sed 's/^/  /'; \
+		else \
+			printf "  $(DIM)  not found$(NC)\n"; \
+		fi; \
+		printf "\n$(DIM)  home-manager:$(NC)\n"; \
+		if [ -d "/etc/profiles/per-user" ]; then \
+			HM_PKGS=$$(find /etc/profiles/per-user -name "$(PKG)" -type f 2>/dev/null | head -5 || true); \
+			if [ -n "$$HM_PKGS" ]; then \
+				echo "$$HM_PKGS" | sed 's/^/  /'; \
+			else \
+				printf "  $(DIM)  not found$(NC)\n"; \
+			fi; \
+		else \
+			printf "  $(DIM)  profiles not found$(NC)\n"; \
+		fi; \
+		printf "\n$(YELLOW)📋 Quick Actions:$(NC)\n"; \
+		printf "$(DIM)────────────────────────────────────────────────────────────────────────────────$(NC)\n"; \
+		printf "  • search in nixpkgs: $(BLUE)make dev-search PKG=$(PKG)$(NC)\n\n"; \
 	fi
-	
 ifndef EMBEDDED
-	@printf "\n$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(GREEN) ✅ Search complete$(NC)\n"
-	@printf "$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
+	@if [ -n "$(PKG)" ]; then printf "$(GREEN)  ✓ done$(NC)\n"; fi
 endif
 
 # ═══════════════════════════════════════════════════════════════
 # 🧠 DEV-REPL - Open an interactive Nix REPL with the flake loaded
 # ═══════════════════════════════════════════════════════════════
 # ──── REPL: nix repl with repl-flake flag; inspect config live ────
-# Start nix repl with the current flake loaded
 dev-repl: ## Start nix repl with flake
 ifndef EMBEDDED
 	@printf "\n"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(CYAN)             🧠 Nix REPL - Interactive Shell            \n$(NC)"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
-endif
-	
-	@printf "$(GREEN)1.$(NC) $(BLUE)Starting REPL:$(NC)\n"
+	@printf "$(CYAN)🧠 dev-repl · interactive nix repl$(NC)\n"
 	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
-	@printf "$(BLUE)Loading flake environment...$(NC)\n"
-	@printf "$(YELLOW)Useful commands:$(NC)\n"
-	@printf "  $(GREEN):q$(NC) or $(GREEN):quit$(NC) - Exit REPL\n"
-	@printf "  $(GREEN)outputs$(NC) - View flake outputs\n"
-	@printf "  $(GREEN)outputs.nixosConfigurations.$(HOSTNAME)$(NC) - View configuration\n"
-	@printf "\n"
-	@nix repl --extra-experimental-features repl-flake $(FLAKE_DIR)
-	
-ifndef EMBEDDED
-	@printf "\n$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(GREEN) ✅ REPL session ended$(NC)\n"
-	@printf "$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
 endif
+	@printf "$(DIM)  :q / :quit · outputs · outputs.nixosConfigurations.$(HOSTNAME)$(NC)\n"
+	@printf "\n"
+	@if [ "$$DRY_RUN" = "1" ]; then \
+		printf "  ▶ [dry-run] nix repl --extra-experimental-features repl-flake $(FLAKE_DIR)\n"; \
+	else \
+		nix repl --extra-experimental-features repl-flake $(FLAKE_DIR); \
+	fi
+ifndef EMBEDDED
+	@printf "\n$(GREEN)  ✓ session ended$(NC)\n"
+endif
+	@printf "\n$(YELLOW)📋 Quick Actions:$(NC)\n"
+	@printf "$(DIM)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
+	@printf "  • enter dev shell: $(BLUE)make dev-shell$(NC)\n\n"
 
 # ═══════════════════════════════════════════════════════════════
 # 🐚 DEV-SHELL - Enter the flake development shell
