@@ -136,49 +136,38 @@ endif
 sys-clean-result: ## Remove result symlinks
 ifndef EMBEDDED
 	@printf "\n"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(CYAN)             🧹 Cleaning Result Symlinks                \n$(NC)"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
-endif
-	
-	@printf "$(GREEN)1.$(NC) $(BLUE)Finding Symlinks:$(NC)\n"
+	@printf "$(CYAN)🧹 sys-clean-result · remove nix build symlinks$(NC)\n"
 	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
-	@printf "$(BLUE)Searching for result symlinks created by Nix builds...$(NC)\n"
-	@printf "$(YELLOW)These links can be safely removed.$(NC)\n"
-	@printf "\n"
+endif
 	@RESULT_LINKS=$$(find . -maxdepth 2 -name 'result*' -type l 2>/dev/null); \
 	if [ -z "$$RESULT_LINKS" ]; then \
-		printf "$(GREEN)✓ No result symlinks found$(NC)\n"; \
+		printf "$(GREEN)  ✓ no result symlinks found$(NC)\n"; \
 	else \
 		COUNT=$$(echo "$$RESULT_LINKS" | wc -l); \
-		printf "$(BLUE)Found $(YELLOW)$$COUNT$(NC) $(BLUE)result symlink(s):$(NC)\n"; \
+		printf "  found $(YELLOW)$$COUNT$(NC) symlink(s):\n"; \
 		echo "$$RESULT_LINKS" | while read -r link; do \
 			TARGET=$$(readlink -f "$$link" 2>/dev/null || echo "broken"); \
-			printf "  $(YELLOW)$$link$(NC)"; \
 			if [ "$$TARGET" != "broken" ]; then \
-				printf " → $(GREEN)$$TARGET$(NC)\n"; \
+				printf "  $(DIM)$$link → $$TARGET$(NC)\n"; \
 			else \
-				printf " → $(RED)(broken link)$(NC)\n"; \
+				printf "  $(RED)$$link → (broken)$(NC)\n"; \
 			fi; \
 		done; \
-		printf "\n$(GREEN)2.$(NC) $(BLUE)Removing Symlinks:$(NC)\n"; \
-		printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"; \
+		printf "\n"; \
 		if [ "$$DRY_RUN" = "1" ]; then \
 			printf "  ▶ [dry-run] find . -maxdepth 2 -name 'result*' -type l -delete\n"; \
-			printf "$(YELLOW)  Would remove $$COUNT symlink(s)$(NC)\n"; \
+			printf "$(YELLOW)  would remove $$COUNT symlink(s)$(NC)\n"; \
 		else \
 			find . -maxdepth 2 -name 'result*' -type l -delete 2>/dev/null; \
-			printf "$(GREEN)✅ Removed $$COUNT symlink(s)$(NC)\n"; \
+			printf "$(GREEN)  ✓ removed $$COUNT symlink(s)$(NC)\n"; \
 		fi; \
 	fi
-	
 ifndef EMBEDDED
-	@printf "\n$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(GREEN) ✅ Cleanup completed$(NC)\n"
-	@printf "$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
+	@printf "\n$(GREEN)  ✓ done$(NC)\n"
 endif
+	@printf "\n$(YELLOW)📋 Quick Actions:$(NC)\n"
+	@printf "$(DIM)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
+	@printf "  · $(BLUE) make sys-build $(NC)$(DIM) rebuild to regenerate result symlinks$(NC)\n\n"
 
 # ═══════════════════════════════════════════════════════════════
 # 🔧 SYS-FIX-STORE - Verify and repair the Nix store for corruption
