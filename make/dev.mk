@@ -45,33 +45,27 @@ endif
 	@printf "$(DIM)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
 	@printf "  • deploy a host: $(BLUE)make sys-apply HOSTNAME=<name>$(NC)\n\n"
 
-# Search for a package in nixpkgs using nix-search
+# ═══════════════════════════════════════════════════════════════
+# 🔍 DEV-SEARCH - Search nixpkgs for a package
+# ═══════════════════════════════════════════════════════════════
+# ──── Search: nix search nixpkgs <pkg>; requires PKG=name ────
 dev-search: ## Search nixpkgs for package (use PKG=name)
 	@if [ -z "$(PKG)" ]; then \
-		printf "\n"; \
-		printf "$(RED)❌ Error: PKG parameter is required$(NC)\n"; \
-		printf "$(YELLOW)Usage: make dev-search PKG=<package-name>$(NC)\n"; \
+		printf "$(RED)  ✗ PKG is required — usage: make dev-search PKG=<name>$(NC)\n"; \
 		exit 1; \
 	fi
-
 ifndef EMBEDDED
 	@printf "\n"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(CYAN)             🔍 Nixpkgs Search                          \n$(NC)"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
-endif
-	
-	@printf "$(GREEN)1.$(NC) $(BLUE)Searching for '$(PKG)':$(NC)\n"
+	@printf "$(CYAN)🔍 dev-search · nixpkgs search$(NC)\n"
 	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
-	@nix search nixpkgs $(PKG)
-	
-ifndef EMBEDDED
-	@printf "\n$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(GREEN) ✅ Search complete$(NC)\n"
-	@printf "$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
 endif
+	@nix search nixpkgs $(PKG)
+ifndef EMBEDDED
+	@printf "\n$(GREEN)  ✓ done$(NC)\n"
+endif
+	@printf "\n$(YELLOW)📋 Quick Actions:$(NC)\n"
+	@printf "$(DIM)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
+	@printf "  • search installed packages: $(BLUE)make dev-search-inst PKG=$(PKG)$(NC)\n\n"
 
 # ═══════════════════════════════════════════════════════════════
 # 🔍 DEV-SEARCH-INST - Search among already-installed packages
