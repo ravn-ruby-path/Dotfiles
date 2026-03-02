@@ -1,15 +1,18 @@
-# ============================================================================
-# Generaciones y Rollback
-# ============================================================================
-# Description: Targets for managing system generations and rollback
-# Documentation: docs/src/content/docs/makefile/05-generations.mdx
-# Targets: 7 targets
-# ============================================================================
+# ═══════════════════════════════════════════════════════════════
+# ⏰ GENERATION MANAGEMENT - NixOS generation tracking and rollback
+# ═══════════════════════════════════════════════════════════════
+# 📚 Documentation: docs/src/content/docs/makefile/05-generations.mdx
+# 🎯 Purpose: List, diff and rollback NixOS system generations
+# ──── Overview: 7 targets for generation management and rollback ─────
 
 .PHONY: gen-list gen-rollback gen-rollback-commit gen-diff gen-diff-current gen-sizes gen-current
 
 # === Generation Management ===
 
+# ═══════════════════════════════════════════════════════════════
+# 📜 GEN-LIST - List all system generations with details
+# ═══════════════════════════════════════════════════════════════
+# ──── Reads from /nix/var/nix/profiles/system ─────────────────
 # List all system generations with details
 gen-list: ## List all system generations
 ifndef EMBEDDED
@@ -36,6 +39,10 @@ endif
 	@printf "• Rollback:            $(BLUE)make gen-rollback$(NC)\n"
 	@printf "\n"
 
+# ═══════════════════════════════════════════════════════════════
+# ⏪ GEN-ROLLBACK - Rollback to the previous generation
+# ═══════════════════════════════════════════════════════════════
+# ──── Prompts for confirmation before executing nixos-rebuild rollback ─
 # Rollback to the previous generation
 gen-rollback: ## Rollback to previous generation
 ifndef EMBEDDED
@@ -69,6 +76,10 @@ endif
 		printf "\n"; \
 	fi
 
+# ═══════════════════════════════════════════════════════════════
+# ⏪ GEN-ROLLBACK-COMMIT - Rollback to a specific git commit and rebuild
+# ═══════════════════════════════════════════════════════════════
+# ──── Requires COMMIT=<hash> — detaches HEAD at that commit ─────
 # Rollback to a specific commit and rebuild system
 gen-rollback-commit: ## Rollback to specific commit and rebuild (use COMMIT=hash)
 	@if [ -z "$$(COMMIT)" ]; then \
@@ -150,6 +161,10 @@ endif
 		printf "\n"; \
 	fi
 
+# ═══════════════════════════════════════════════════════════════
+# 📊 GEN-DIFF - Compare any two generations
+# ═══════════════════════════════════════════════════════════════
+# ──── Requires GEN1=n GEN2=m — uses nix-diff ─────────────────
 # Compare any two generations (requires GEN1 and GEN2 variables)
 gen-diff: ## Compare two generations (use GEN1=n GEN2=m)
 	@if [ -z "$$(GEN1)" ] || [ -z "$$(GEN2)" ]; then \
@@ -177,6 +192,10 @@ ifndef EMBEDDED
 	@printf "\n"
 endif
 
+# ═══════════════════════════════════════════════════════════════
+# 📊 GEN-DIFF-CURRENT - Compare current generation with the previous one
+# ═══════════════════════════════════════════════════════════════
+# ──── Auto-detects current generation number ────────────────
 # Compare current generation with the previous one
 gen-diff-current: ## Compare current generation with previous
 ifndef EMBEDDED
@@ -205,6 +224,10 @@ ifndef EMBEDDED
 	@printf "\n"
 endif
 
+# ═══════════════════════════════════════════════════════════════
+# 💾 GEN-SIZES - Show disk usage for all generations
+# ═══════════════════════════════════════════════════════════════
+# ──── Reports 'du -sh' size for each system generation link ────
 # Show disk usage for all generations
 gen-sizes: ## Show size of generations
 ifndef EMBEDDED
@@ -230,6 +253,10 @@ ifndef EMBEDDED
 	@printf "\n"
 endif
 
+# ═══════════════════════════════════════════════════════════════
+# 📌 GEN-CURRENT - Show details of the active generation
+# ═══════════════════════════════════════════════════════════════
+# ──── Filters nix-env generation list for 'current' marker ─────
 # Show details of the current generation
 gen-current: ## Show current generation info
 ifndef EMBEDDED
