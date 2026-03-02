@@ -175,39 +175,31 @@ endif
 # 🖥️  DEV-VM - Build and run a NixOS virtual machine for testing
 # ═══════════════════════════════════════════════════════════════
 # ──── VM: Builds then runs result/bin/run-*-vm; HOST=name optional ─
-# Build and run a VM for testing configuration
 dev-vm: ## Build and run VM (use HOST=name)
+ifndef EMBEDDED
+	@printf "\n"
+	@printf "$(CYAN)🖥️  dev-vm · build and run nixos vm$(NC)\n"
+	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
+endif
 	@HOST=$${HOST:-$(HOSTNAME)}; \
-	if [ -z "$(EMBEDDED)" ]; then \
-		printf "\n"; \
-		printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"; \
-		printf "$(CYAN)             🖥️  NixOS Virtual Machine ($$HOST)         \n$(NC)"; \
-		printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"; \
-		printf "\n"; \
-	fi; \
-	printf "$(GREEN)1.$(NC) $(BLUE)Building VM:$(NC)\n"; \
-	printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"; \
-	printf "$(BLUE)Building VM from configuration for $$HOST...$(NC)\n"; \
-	if nix build ".#nixosConfigurations.$$HOST.config.system.build.vm" 2>/dev/null; then \
-		printf "$(GREEN)✅ VM built successfully$(NC)\n"; \
-		printf "\n$(GREEN)2.$(NC) $(BLUE)Running VM:$(NC)\n"; \
-		printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"; \
-		printf "$(BLUE)Starting VM... (Press partial Ctrl+A then c to control, or close window to exit)$(NC)\n"; \
+	printf "$(DIM)  host: $$HOST$(NC)\n\n"; \
+	if [ "$$DRY_RUN" = "1" ]; then \
+		printf "  ▶ [dry-run] nix build .#nixosConfigurations.$$HOST.config.system.build.vm\n"; \
+		printf "  ▶ [dry-run] ./result/bin/run-$$HOST-vm\n"; \
+	elif nix build ".#nixosConfigurations.$$HOST.config.system.build.vm"; then \
+		printf "$(GREEN)  ✓ vm built$(NC)\n\n"; \
+		printf "$(DIM)  Ctrl+A c to access monitor · close window to exit$(NC)\n\n"; \
 		./result/bin/run-*-vm; \
-		if [ -z "$(EMBEDDED)" ]; then \
-			printf "\n$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"; \
-			printf "$(GREEN) ✅ VM session ended$(NC)\n"; \
-			printf "$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"; \
-			printf "\n"; \
-		fi; \
 	else \
-		printf "\n$(RED)❌ VM build failed$(NC)\n"; \
-		printf "\n$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"; \
-		printf "$(RED) ❌ Command failed$(NC)\n"; \
-		printf "$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"; \
-		printf "\n"; \
+		printf "$(RED)  ✗ vm build failed$(NC)\n"; \
 		exit 1; \
 	fi
+ifndef EMBEDDED
+	@printf "\n$(GREEN)  ✓ session ended$(NC)\n"
+endif
+	@printf "\n$(YELLOW)📋 Quick Actions:$(NC)\n"
+	@printf "$(DIM)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
+	@printf "  • clean result symlink: $(BLUE)make sys-clean-result$(NC)\n\n"
 
 # ═══════════════════════════════════════════════════════════════
 # 📊 DEV-SIZE - Analyse closure size of a host or running system
