@@ -53,6 +53,7 @@ NC := \033[0m # No Color
 # ═══════════════════════════════════════════════════════════════
 
 include make/docs.mk
+include make/system.mk
 include make/cleanup.mk
 include make/updates.mk
 include make/generations.mk
