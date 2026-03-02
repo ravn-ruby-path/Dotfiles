@@ -4,6 +4,9 @@
 # 📚 Documentation: docs/src/content/docs/makefile/07-logs.mdx
 # 🎯 Purpose: Monitor system status, network, disk usage and journal logs
 # ──── Overview: 8 targets for diagnostics, logs and network analysis ────
+#
+# 🧪 Dry Run (preview without executing):
+#    (all targets are read-only / diagnostic — no DRY_RUN needed)
 
 .PHONY: sys-status sys-disk log-net log-watch log-boot log-err log-svc log-net-enhanced
 
@@ -12,262 +15,218 @@
 # ═══════════════════════════════════════════════════════════════
 # 🏥 SYS-STATUS - Combined dashboard and detailed system status
 # ═══════════════════════════════════════════════════════════════
-# ──── Reports hostname, NixOS version, disk, generations and git state 
-# Combined dashboard and detailed system status
+# ──── Reports hostname, NixOS version, disk, generations and git state ─
 sys-status: ## System health dashboard and report
+ifndef EMBEDDED
 	@printf "\n"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(CYAN)             🏥 System Health Dashboard                 \n$(NC)"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
-	
-	@printf "$(BLUE)1. Core Components:$(NC)\n"
+	@printf "$(CYAN)🏥 sys-status · system health dashboard$(NC)\n"
 	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
-	@printf "  $(BLUE)Hostname:$(NC)     $(GREEN)$(HOSTNAME)$(NC)\n"
-	@printf "  $(BLUE)NixOS:$(NC)        $(GREEN)$(nixos-version 2>/dev/null | cut -d' ' -f1 || echo 'N/A')$(NC)\n"
-	@printf "  $(BLUE)Flake Config:$(NC) "
+endif
+	@printf "$(BLUE)  Core:$(NC)\n"
+	@NIXOS_VER=$$(nixos-version 2>/dev/null | cut -d' ' -f1 || echo 'N/A'); \
+	printf "    $(BLUE)hostname:$(NC)  $(GREEN)$$(hostname)$(NC)\n"; \
+	printf "    $(BLUE)NixOS:$(NC)     $(GREEN)$$NIXOS_VER$(NC)\n"
+	@printf "    $(BLUE)flake:$(NC)     "
 	@if nix flake metadata --json . >/dev/null 2>&1; then \
-		printf "$(GREEN)✓ Valid$(NC)\n"; \
+		printf "$(GREEN)✓ valid$(NC)\n"; \
 	else \
-		printf "$(RED)✗ Invalid$(NC)\n"; \
+		printf "$(RED)✗ invalid$(NC)\n"; \
 	fi
-	
-	@printf "\n$(BLUE)2. Storage & Generations:$(NC)\n"
-	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
-	@DISK=$(df -h /nix 2>/dev/null | tail -1 | awk '{print $5 " used (" $4 " free)"}' || echo 'N/A'); \
-	printf "  $(BLUE)Disk (/nix):$(NC)  $(GREEN)%s$(NC)\n" "$DISK"; \
-	GENS_OUT=$(sudo nix-env --list-generations --profile /nix/var/nix/profiles/system 2>/dev/null); \
-	if [ -z "$GENS_OUT" ]; then \
-		printf "  $(BLUE)Generations:$(NC)  $(YELLOW)Access denied (needs sudo)$(NC)\n"; \
+	@printf "\n$(BLUE)  Storage:$(NC)\n"
+	@DISK=$$(df -h /nix 2>/dev/null | tail -1 | awk '{print $$5" used ("$$4" free)"}' || echo 'N/A'); \
+	printf "    $(BLUE)disk /nix:$(NC) $(GREEN)$$DISK$(NC)\n"
+	@GENS_OUT=$$(sudo nix-env --list-generations --profile /nix/var/nix/profiles/system 2>/dev/null); \
+	if [ -z "$$GENS_OUT" ]; then \
+		printf "    $(BLUE)gens:$(NC)      $(YELLOW)needs sudo$(NC)\n"; \
 	else \
-		TOTAL_GENS=$(echo "$GENS_OUT" | grep -c . || echo '0'); \
-		CURRENT_GEN=$(echo "$GENS_OUT" | tail -1 | awk '{print $1 " (" $2 " " $3 ")"}' || echo 'N/A'); \
-		printf "  $(BLUE)Total Gens:$(NC)   $(GREEN)%s$(NC)\n" "$TOTAL_GENS"; \
-		printf "  $(BLUE)Current Gen:$(NC)  $(GREEN)%s$(NC)\n" "$CURRENT_GEN"; \
+		TOTAL=$$(echo "$$GENS_OUT" | grep -c .); \
+		CURRENT=$$(echo "$$GENS_OUT" | grep current | awk '{print $$1" ("$$2" "$$3")"}'); \
+		printf "    $(BLUE)gens total:$(NC) $(GREEN)$$TOTAL$(NC)\n"; \
+		printf "    $(BLUE)current:$(NC)    $(GREEN)$$CURRENT$(NC)\n"; \
 	fi
-	
-	@printf "\n$(BLUE)3. System Health:$(NC)\n"
-	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
-	@printf "  $(BLUE)Git Status:$(NC)   "
+	@printf "\n$(BLUE)  Health:$(NC)\n"
 	@if git diff-index --quiet HEAD -- 2>/dev/null; then \
-		printf "$(GREEN)✓ Clean$(NC)\n"; \
+		printf "    $(BLUE)git:$(NC)       $(GREEN)✓ clean$(NC)\n"; \
 	else \
-		printf "$(YELLOW)⚠ Uncommitted changes$(NC)\n"; \
+		printf "    $(BLUE)git:$(NC)       $(YELLOW)⚠ uncommitted changes$(NC)\n"; \
 	fi
-	@printf "  $(BLUE)Services:$(NC)     "
-	@FAILED=$(systemctl --failed --no-legend 2>/dev/null | wc -l); \
-	if [ $FAILED -eq 0 ]; then \
-		printf "$(GREEN)✓ All running$(NC)\n"; \
+	@FAILED=$$(systemctl --failed --no-legend 2>/dev/null | wc -l); \
+	if [ "$$FAILED" -eq 0 ]; then \
+		printf "    $(BLUE)services:$(NC)  $(GREEN)✓ all running$(NC)\n"; \
 	else \
-		printf "$(RED)✗ $FAILED failed$(NC) (run 'systemctl --failed')\n"; \
+		printf "    $(BLUE)services:$(NC)  $(RED)✗ $$FAILED failed$(NC)\n"; \
 	fi
-	
-	@printf "\n$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(GREEN) ✅ Dashboard complete$(NC)\n"
-	@printf "$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
+ifndef EMBEDDED
+	@printf "\n$(GREEN)  ✓ done$(NC)\n"
+endif
+	@printf "\n$(YELLOW)📋 Quick Actions:$(NC)\n"
+	@printf "$(DIM)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
+	@printf "  • disk details:   $(BLUE)make sys-disk$(NC)\n"
+	@printf "  • error logs:     $(BLUE)make log-err$(NC)\n"
+	@printf "  • live logs:      $(BLUE)make log-watch$(NC)\n\n"
 
 # ═══════════════════════════════════════════════════════════════
 # 💾 SYS-DISK - Detailed disk usage report for key partitions
 # ═══════════════════════════════════════════════════════════════
 # ──── Uses duf if available, falls back to df ────────────────
-# Detailed disk usage report for key partitions and directories
-# Uses duf if available for pretty printing, otherwise falls back to df
 sys-disk: ## Show disk usage info
- ifndef EMBEDDED
+ifndef EMBEDDED
 	@printf "\n"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(CYAN)             💾 Disk Usage Report                       \n$(NC)"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
- endif
-
-	@printf "$(BLUE)1. Partition Usage:$(NC)\n"
+	@printf "$(CYAN)💾 sys-disk · partition and home usage$(NC)\n"
 	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
+endif
 	@if command -v duf >/dev/null 2>&1; then \
 		duf -only local / /nix/store $(HOME); \
 	else \
-		printf "$(YELLOW)Root Partition (/):$(NC)\n"; \
-		df -h / | tail -1 | awk '{print "  Size: " $$2 "  Used: " $$3 "  Avail: " $$4 "  Use%: " $$5}'; \
-		printf "\n$(YELLOW)Nix Store (/nix/store):$(NC)\n"; \
-		df -h /nix/store | tail -1 | awk '{print "  Size: " $$2 "  Used: " $$3 "  Avail: " $$4 "  Use%: " $$5}'; \
-		printf "\n$(YELLOW)Home Partition ($(HOME)):$(NC)\n"; \
-		df -h $(HOME) | tail -1 | awk '{print "  Size: " $$2 "  Used: " $$3 "  Avail: " $$4 "  Use%: " $$5}'; \
+		printf "$(DIM)  /$(NC)\n"; \
+		df -h / | tail -1 | awk '{printf "    size: %s  used: %s  avail: %s  use%%: %s\n",$$2,$$3,$$4,$$5}'; \
+		printf "$(DIM)  /nix/store$(NC)\n"; \
+		df -h /nix/store | tail -1 | awk '{printf "    size: %s  used: %s  avail: %s  use%%: %s\n",$$2,$$3,$$4,$$5}'; \
+		printf "$(DIM)  $(HOME)$(NC)\n"; \
+		df -h $(HOME) | tail -1 | awk '{printf "    size: %s  used: %s  avail: %s  use%%: %s\n",$$2,$$3,$$4,$$5}'; \
 	fi
-
-	@printf "\n$(BLUE)2. User Data Size:$(NC)\n"
-	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
-	@printf "$(YELLOW)Calculating specific usage for $(HOME)...$(NC)\n"
+	@printf "\n$(DIM)  home content:$(NC)\n"
 	@HOME_SIZE=$$(du -sh $(HOME) 2>/dev/null | cut -f1); \
-	printf "  $(BLUE)Home Content:$(NC) $(GREEN)$$HOME_SIZE$(NC)\n"
-
- ifndef EMBEDDED
-	@printf "\n$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(GREEN) ✅ Report complete$(NC)\n"
-	@printf "$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
- endif
+	printf "    $(GREEN)$$HOME_SIZE$(NC)\n"
+ifndef EMBEDDED
+	@printf "\n$(GREEN)  ✓ done$(NC)\n"
+endif
+	@printf "\n$(YELLOW)📋 Quick Actions:$(NC)\n"
+	@printf "$(DIM)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
+	@printf "  • system status:  $(BLUE)make sys-status$(NC)\n"
+	@printf "  • gc old gens:    $(BLUE)make sys-gc$(NC)\n\n"
 
 # ═══════════════════════════════════════════════════════════════
 # 🌐 LOG-NET - Comprehensive network diagnostics
 # ═══════════════════════════════════════════════════════════════
 # ──── Tests DNS resolution, ping and network throughput ────────
-# Comprehensive network diagnostics including DNS, connectivity, and performance tests
-# Tests DNS resolution, ping connectivity, and network throughput
 log-net: ## Run comprehensive network diagnostics
+ifndef EMBEDDED
 	@printf "\n"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(CYAN)             🌐 Network Diagnostics                     \n$(NC)"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
-	
-	@printf "$(BLUE)1. DNS Status:$(NC)\n"
+	@printf "$(CYAN)🌐 log-net · network diagnostics$(NC)\n"
 	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
-	@resolvectl status 2>/dev/null | head -60 || printf "$(YELLOW)resolvectl not available$(NC)\n"
-	
-	@printf "\n$(BLUE)2. Latency Tests:$(NC)\n"
-	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
-	@printf "$(BLUE)Pinging Cloudflare (1.1.1.1)...$(NC)\n"
+endif
+	@printf "$(DIM)  DNS status:$(NC)\n"
+	@resolvectl status 2>/dev/null | head -60 || printf "$(YELLOW)  resolvectl not available$(NC)\n"
+	@printf "\n$(DIM)  latency — cloudflare (1.1.1.1):$(NC)\n"
 	@ping -c 5 1.1.1.1
-	@printf "\n$(BLUE)Pinging Google (google.com)...$(NC)\n"
+	@printf "\n$(DIM)  latency — google.com:$(NC)\n"
 	@ping -c 5 google.com
-	
-	@printf "\n$(BLUE)3. Throughput Test:$(NC)\n"
-	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
-	@curl -L -o /dev/null --max-time 20 -w "Downloaded: %{size_download} bytes, Speed: %{speed_download} B/s, Total: %{time_total}s\n" \
+	@printf "\n$(DIM)  throughput (cloudflare 50MB):$(NC)\n"
+	@curl -L -o /dev/null --max-time 20 -w "  downloaded: %{size_download} bytes  speed: %{speed_download} B/s  time: %{time_total}s\n" \
 		"https://speed.cloudflare.com/__down?bytes=50000000"
-		
-	@printf "\n$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(GREEN) ✅ Diagnostics complete$(NC)\n"
-	@printf "$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
+ifndef EMBEDDED
+	@printf "\n$(GREEN)  ✓ done$(NC)\n"
+endif
+	@printf "\n$(YELLOW)📋 Quick Actions:$(NC)\n"
+	@printf "$(DIM)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
+	@printf "  • enhanced diagnostics: $(BLUE)make log-net-enhanced$(NC)\n"
+	@printf "  • live logs:            $(BLUE)make log-watch$(NC)\n\n"
 
 # ═══════════════════════════════════════════════════════════════
 # 📈 LOG-WATCH - Monitor system logs in real-time
 # ═══════════════════════════════════════════════════════════════
 # ──── Runs journalctl -f (follow mode), Ctrl+C to exit ──────
-# Monitor system logs in real-time using journalctl follow mode
-# Continuously displays new log entries as they are written
 log-watch: ## Watch system logs in real-time (follow mode)
+ifndef EMBEDDED
 	@printf "\n"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(CYAN)             📊 Live System Logs                        \n$(NC)"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
-	@printf "$(BLUE)Streaming new log entries...$(NC)\n"
-	@printf "$(YELLOW)Press $(GREEN)Ctrl+C$(YELLOW) to exit$(NC)\n"
+	@printf "$(CYAN)📈 log-watch · live journal stream$(NC)\n"
 	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
+endif
+	@printf "$(DIM)  streaming — press $(NC)$(YELLOW)Ctrl+C$(NC)$(DIM) to exit$(NC)\n\n"
 	@journalctl -f
 
 # ═══════════════════════════════════════════════════════════════
 # 📋 LOG-BOOT - Display error and alert logs from the current boot
 # ═══════════════════════════════════════════════════════════════
 # ──── journalctl -b -p err..alert, last 50 entries ──────────
-# Display error and alert logs from the current boot session
-# Shows systemd logs with priority err and alert from current boot
 log-boot: ## Show boot logs
+ifndef EMBEDDED
 	@printf "\n"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(CYAN)             📋 Current Boot Logs                       \n$(NC)"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
-	
-	@printf "$(BLUE)1. Critical Errors:$(NC)\n"
+	@printf "$(CYAN)📋 log-boot · errors from current boot$(NC)\n"
 	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
+endif
 	@journalctl -b -p err..alert --no-pager | tail -50 || true
-	
-	@printf "\n$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(GREEN) ✅ Log display complete$(NC)\n"
-	@printf "$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
+ifndef EMBEDDED
+	@printf "\n$(GREEN)  ✓ done$(NC)\n"
+endif
+	@printf "\n$(YELLOW)📋 Quick Actions:$(NC)\n"
+	@printf "$(DIM)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
+	@printf "  • recent errors:  $(BLUE)make log-err$(NC)\n"
+	@printf "  • live stream:    $(BLUE)make log-watch$(NC)\n\n"
 
 # ═══════════════════════════════════════════════════════════════
 # 📋 LOG-ERR - Display recent error-level logs
 # ═══════════════════════════════════════════════════════════════
 # ──── Shows last 50 error messages with timestamps ──────────
-# Display recent error-level logs from systemd journal
-# Shows the last 50 error messages with timestamps
 log-err: ## Show recent error logs
+ifndef EMBEDDED
 	@printf "\n"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(CYAN)             📋 Recent System Errors                    \n$(NC)"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
-	
-	@printf "$(BLUE)1. Error Analysis:$(NC)\n"
+	@printf "$(CYAN)🔴 log-err · recent error-level journal entries$(NC)\n"
 	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
-	@ERROR_COUNT=$(journalctl -p err -n 50 --no-pager 2>/dev/null | wc -l || echo "0"); \
-	if [ $$ERROR_COUNT -eq 0 ]; then \
-		printf "$(GREEN)✓ No recent errors, system is clean.$(NC)\n"; \
+endif
+	@ERROR_COUNT=$$(journalctl -p err -n 50 --no-pager 2>/dev/null | wc -l || echo "0"); \
+	if [ "$$ERROR_COUNT" -eq 0 ]; then \
+		printf "$(GREEN)  ✓ no recent errors — system is clean$(NC)\n"; \
 	else \
-		printf "$(YELLOW)⚠ Found $$ERROR_COUNT recent error(s):$(NC)\n\n"; \
+		printf "$(YELLOW)  ⚠ found $$ERROR_COUNT recent error(s):$(NC)\n\n"; \
 		journalctl -p err -n 50 --no-pager || true; \
 	fi
-	
-	@printf "\n$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(GREEN) ✅ Check complete$(NC)\n"
-	@printf "$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
+ifndef EMBEDDED
+	@printf "\n$(GREEN)  ✓ done$(NC)\n"
+endif
+	@printf "\n$(YELLOW)📋 Quick Actions:$(NC)\n"
+	@printf "$(DIM)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
+	@printf "  • boot errors:    $(BLUE)make log-boot$(NC)\n"
+	@printf "  • service logs:   $(BLUE)make log-svc SVC=<name>$(NC)\n"
+	@printf "  • live stream:    $(BLUE)make log-watch$(NC)\n\n"
 
 # ═══════════════════════════════════════════════════════════════
 # 📋 LOG-SVC - Display logs for a specific systemd service
 # ═══════════════════════════════════════════════════════════════
 # ──── Requires SVC=<name> e.g. make log-svc SVC=sshd ───────
-# Display logs for a specific systemd service using journalctl
-# Shows recent logs for the specified service (use SVC=name parameter)
 log-svc: ## Show logs for specific service (use SVC=name)
-	@if [ -z "$(SVC)" ]; then \
-		printf "\n" ; \
-		printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"; \
-		printf "$(CYAN)             📋 Service Log Viewer                      \n$(NC)"; \
-		printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"; \
-		printf "\n"; \
-		printf "$(RED)❌ Error: SVC variable required$(NC)\n\n"; \
-		printf "$(BLUE)Usage:$(NC) make log-svc SVC=<service-name>\n\n"; \
-		printf "$(BLUE)Examples:$(NC)\n"; \
-		printf "  make log-svc SVC=sshd\n"; \
-		printf "  make log-svc SVC=networkmanager\n\n"; \
-		printf "$(BLUE)Running Services:$(NC)\n"; \
-		if command -v systemctl >/dev/null 2>&1; then \
-			systemctl list-units --type=service --state=running --no-pager --no-legend 2>/dev/null | \
-			awk '{print "  " $$1}' | head -10 || true; \
-		fi; \
-		printf "\n$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"; \
-		printf "\n"; \
-		exit 1; \
-	fi
+ifndef EMBEDDED
 	@printf "\n"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(CYAN)             📋 Service Logs: $(SVC)                    \n$(NC)"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
-	
-	@printf "$(BLUE)1. Recent Entries:$(NC)\n"
+	@printf "$(CYAN)📋 log-svc · service journal logs$(NC)\n"
 	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
-	@if journalctl -u $(SVC) --since "1 hour ago" --no-pager 2>/dev/null | grep -q .; then \
-		journalctl -u $(SVC) --since "1 hour ago" -n 100 --no-pager; \
+endif
+	@if [ -z "$(SVC)" ]; then \
+		printf "$(YELLOW)  usage: make log-svc SVC=<service-name>$(NC)\n\n"; \
+		printf "$(DIM)  examples:$(NC)\n"; \
+		printf "    make log-svc SVC=sshd\n"; \
+		printf "    make log-svc SVC=networkmanager\n\n"; \
+		printf "$(DIM)  running services:$(NC)\n"; \
+		systemctl list-units --type=service --state=running --no-pager --no-legend 2>/dev/null | \
+			awk '{print "    " $$1}' | head -10 || true; \
+		printf "\n"; \
 	else \
-		printf "$(YELLOW)No logs in the last hour. Showing older logs...$(NC)\n\n"; \
-		journalctl -u $(SVC) -n 50 --no-pager; \
+		if journalctl -u $(SVC) --since "1 hour ago" --no-pager 2>/dev/null | grep -q .; then \
+			journalctl -u $(SVC) --since "1 hour ago" -n 100 --no-pager; \
+		else \
+			printf "$(DIM)  no logs in the last hour — showing older entries:$(NC)\n\n"; \
+			journalctl -u $(SVC) -n 50 --no-pager; \
+		fi; \
 	fi
-	
-	@printf "\n$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(GREEN) ✅ Log display complete$(NC)\n"
-	@printf "$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
+ifndef EMBEDDED
+	@if [ -n "$(SVC)" ]; then printf "\n$(GREEN)  ✓ done$(NC)\n"; fi
+endif
+	@if [ -n "$(SVC)" ]; then \
+		printf "\n$(YELLOW)📋 Quick Actions:$(NC)\n"; \
+		printf "$(DIM)────────────────────────────────────────────────────────────────────────────────$(NC)\n"; \
+		printf "  • live stream:  $(BLUE)make log-watch$(NC)\n"; \
+		printf "  • recent errors: $(BLUE)make log-err$(NC)\n\n"; \
+	fi
 # ═══════════════════════════════════════════════════════════════
 # 🌐 LOG-NET-ENHANCED - Extended network diagnostics with auto-verification
 # ═══════════════════════════════════════════════════════════════
 # ──── Checks DNS, firewall, throughput, MTR and TCP optimizations ─
-# NEW: Enhanced version with automatic DNS, firewall, and optimization verification
-# You can test this without affecting the original 'make log-net' command
-# Usage: make log-net-enhanced
 log-net-enhanced: ## Run enhanced network diagnostics with automatic verification
+ifndef EMBEDDED
 	@printf "\n"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(CYAN)             🌐 Network Diagnostics (Enhanced)                  \n$(NC)"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
+	@printf "$(CYAN)🌐 log-net-enhanced · full network diagnostics$(NC)\n"
+	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
+endif
 	
 	# 1. DNS Configuration Verification
 	@printf "$(BLUE)1. DNS Configuration & Override Status:$(NC)\n"
@@ -391,17 +350,13 @@ log-net-enhanced: ## Run enhanced network diagnostics with automatic verificatio
 		printf "$(YELLOW)⚠️  Queue discipline: $$qdisc$(NC)\n"; \
 	fi
 	
-	# Final Summary
-	@printf "\n$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(GREEN) ✅ Network diagnostics complete$(NC)\n"
-	@printf "$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
-	@printf "$(YELLOW)📋 Quick Actions:$(NC)\n"
-	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
-	@printf "• Force Cloudflare DNS:  $(BLUE)sudo resolvectl dns enp0s31f6 1.1.1.1 1.0.0.1 9.9.9.9$(NC)\n"
-	@printf "• Check DNS override:    $(BLUE)resolvectl status enp0s31f6$(NC)\n"
-	@printf "• Verify firewall:       $(BLUE)sudo iptables -L OUTPUT -n | grep 179.51$(NC)\n"
-	@printf "• Gateway verification:  $(BLUE)./verify-gateway.sh$(NC)\n"
-	@printf "• View quality logs:     $(BLUE)tail -f /var/log/network-quality.log$(NC)\n"
-	@printf "• Check DNS override log:$(BLUE)cat /var/log/dns-override.log$(NC)\n"
-	@printf "\n"
+ifndef EMBEDDED
+	@printf "\n$(GREEN)  ✓ done$(NC)\n"
+endif
+	@printf "\n$(YELLOW)📋 Quick Actions:$(NC)\n"
+	@printf "$(DIM)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
+	@printf "  • force cloudflare DNS: $(BLUE)sudo resolvectl dns enp0s31f6 1.1.1.1 1.0.0.1 9.9.9.9$(NC)\n"
+	@printf "  • check DNS override:   $(BLUE)resolvectl status enp0s31f6$(NC)\n"
+	@printf "  • verify firewall:      $(BLUE)sudo iptables -L OUTPUT -n | grep 179.51$(NC)\n"
+	@printf "  • gateway check:        $(BLUE)./verify-gateway.sh$(NC)\n"
+	@printf "  • basic diagnostics:    $(BLUE)make log-net$(NC)\n\n"
