@@ -4,8 +4,21 @@
 # 📚 Documentation: docs/src/content/docs/makefile/05-generations.mdx
 # 🎯 Purpose: List, diff and rollback NixOS system generations
 # ──── Overview: 7 targets for generation management and rollback ─────
+#
+# 🧪 Dry Run (preview without executing):
+#    make gen-rollback         DRY_RUN=1   · skip nixos-rebuild switch
+#    make gen-rollback-commit  DRY_RUN=1   · skip git checkout + rebuild
+#    (gen-list, gen-diff, gen-diff-current, gen-sizes, gen-current are read-only)
 
 .PHONY: gen-list gen-rollback gen-rollback-commit gen-diff gen-diff-current gen-sizes gen-current
+
+DRY_RUN ?= 0
+export DRY_RUN
+ifeq ($(DRY_RUN),1)
+  EXEC = echo "  ▶ [dry-run]"
+else
+  EXEC =
+endif
 
 # === Generation Management ===
 
@@ -13,67 +26,45 @@
 # 📜 GEN-LIST - List all system generations with details
 # ═══════════════════════════════════════════════════════════════
 # ──── Reads from /nix/var/nix/profiles/system ─────────────────
-# List all system generations with details
 gen-list: ## List all system generations
 ifndef EMBEDDED
 	@printf "\n"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(CYAN)             📜 System Generations                      \n$(NC)"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
-endif
-	
-	@printf "$(GREEN)1.$(NC) $(BLUE)Generations List:$(NC)\n"
+	@printf "$(CYAN)📜 gen-list · system generations$(NC)\n"
 	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
+endif
 	@sudo nix-env --list-generations --profile /nix/var/nix/profiles/system
-	
 ifndef EMBEDDED
-	@printf "\n$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(GREEN) ✅ List complete$(NC)\n"
-	@printf "$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
+	@printf "\n$(GREEN)  ✓ done$(NC)\n"
 endif
-	@printf "$(YELLOW)📋 Quick Actions:$(NC)\n"
-	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
-	@printf "• Compare generations: $(BLUE)make gen-diff GEN1=n GEN2=m$(NC)\n"
-	@printf "• Rollback:            $(BLUE)make gen-rollback$(NC)\n"
-	@printf "\n"
+	@printf "\n$(YELLOW)📋 Quick Actions:$(NC)\n"
+	@printf "$(DIM)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
+	@printf "  • compare generations: $(BLUE)make gen-diff GEN1=n GEN2=m$(NC)\n"
+	@printf "  • rollback:            $(BLUE)make gen-rollback$(NC)\n\n"
 
 # ═══════════════════════════════════════════════════════════════
 # ⏪ GEN-ROLLBACK - Rollback to the previous generation
 # ═══════════════════════════════════════════════════════════════
 # ──── Prompts for confirmation before executing nixos-rebuild rollback ─
-# Rollback to the previous generation
 gen-rollback: ## Rollback to previous generation
 ifndef EMBEDDED
 	@printf "\n"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(CYAN)             ⏪ System Rollback                         \n$(NC)"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
-endif
-	
-	@printf "$(GREEN)1.$(NC) $(BLUE)Confirmation:$(NC)\n"
+	@printf "$(CYAN)⏪ gen-rollback · revert to previous generation$(NC)\n"
 	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
-	@printf "$(RED)⚠️  WARNING: You are about to rollback to the previous generation.$(NC)\n"
-	@printf "$(YELLOW)This will apply the previous configuration immediately.$(NC)\n"
-	@printf "\n"
-	@printf "$(RED)Are you sure? Type 'yes' to confirm: $(NC)"; \
+endif
+	@printf "$(RED)  ⚠  rolling back to the previous generation$(NC)\n"
+	@printf "$(DIM)  this will apply the previous configuration immediately$(NC)\n\n"
+	@printf "$(RED)  type 'yes' to confirm: $(NC)"; \
 	read -r REPLY; \
 	if [ "$$REPLY" = "yes" ]; then \
-		printf "\n$(YELLOW)Executing rollback...$(NC)\n\n"; \
-		sudo nixos-rebuild rollback $(NIX_OPTS); \
-		printf "\n$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"; \
-		printf "$(GREEN) ✅ Rollback completed$(NC)\n"; \
-		printf "$(BLUE)System restored to previous generation.$(NC)\n"; \
-		printf "$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"; \
-		printf "\n"; \
+		printf "\n$(DIM)  executing rollback...$(NC)\n\n"; \
+		if [ "$$DRY_RUN" = "1" ]; then \
+			echo "  ▶ [dry-run] sudo nixos-rebuild rollback $(NIX_OPTS)"; \
+		else \
+			sudo nixos-rebuild rollback $(NIX_OPTS); \
+		fi; \
+		printf "\n$(GREEN)  ✓ system restored to previous generation$(NC)\n\n"; \
 	else \
-		printf "\n$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"; \
-		printf "$(BLUE)ℹ️  Rollback cancelled$(NC)\n"; \
-		printf "$(GREEN)✓ No changes made$(NC)\n"; \
-		printf "$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"; \
-		printf "\n"; \
+		printf "\n$(DIM)  rollback cancelled — no changes made$(NC)\n\n"; \
 	fi
 
 # ═══════════════════════════════════════════════════════════════

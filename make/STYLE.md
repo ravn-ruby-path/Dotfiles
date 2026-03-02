@@ -246,13 +246,26 @@ Generations from the last 30 days will be kept.
 
 | Archivo        | Estado     |
 |----------------|------------|
-| `cleanup.mk`   | ✅ `sys-gc` migrado — resto pendiente |
-| `aliases.mk`   | ✅ `help-aliases` header simplificado |
+| `cleanup.mk`   | ✅ completo |
+| `dev.mk`       | ✅ completo |
+| `docs.mk`      | ✅ completo |
+| `format.mk`    | ✅ completo |
+| `aliases.mk`   | ✅ completo |
+| `generations.mk` | ⏳ encabezado listo — targets pendientes de revisión manual |
 | `system.mk`    | ⏳ pendiente |
 | `updates.mk`   | ⏳ pendiente |
-| `generations.mk` | ⏳ pendiente |
 | `logs.mk`      | ⏳ pendiente |
-| `dev.mk`       | ⏳ pendiente |
-| `format.mk`    | ⏳ pendiente |
-| `docs.mk`      | ⏳ pendiente |
 | `git.mk`       | ⏳ pendiente |
+
+---
+
+## Flujo de migración por archivo
+
+Para cada `.mk` nuevo seguir este orden:
+
+1. **Añadir encabezado** — bloque `DRY_RUN` + comentario `🧪 Dry Run` — sin tocar los targets.
+2. **Esperar revisión manual** — el usuario ejecuta cada target en su estado actual para documentar la salida original.
+3. **Migrar target por target** — solo al recibir confirmación explícita (`continua`, `siguiente`, etc.).
+4. **Marcar completado** en esta tabla cuando todos los targets del archivo estén migrados.
+
+> ⚠️ No migrar targets sin confirmación del usuario. La revisión previa es parte del proceso.
