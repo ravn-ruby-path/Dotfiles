@@ -1,15 +1,18 @@
-# ============================================================================
-# Git y Respaldo
-# ============================================================================
-# Description: Targets for git operations, commits and backup
-# Documentation: docs/src/content/docs/makefile/06-git.mdx
-# Targets: 7 targets
-# ============================================================================
+# ═══════════════════════════════════════════════════════════════
+# 🔀 GIT OPERATIONS - Version control and backup
+# ═══════════════════════════════════════════════════════════════
+# 📚 Documentation: docs/src/content/docs/makefile/06-git.mdx
+# 🎯 Purpose: Stage, commit, push and inspect git repository state
+# ──── Overview: 7 targets for the full git commit/push cycle ─
 
 .PHONY: git-add git-commit git-add-commit git-push git-status git-diff git-log
 
-# === Git and Publishing ===
+# === Git Operations ===
 
+# ═══════════════════════════════════════════════════════════════
+# 💾 GIT ADD - Stage all changes for commit
+# ═══════════════════════════════════════════════════════════════
+# ──── Staging: Adds all modified/new files to the git index ──
 git-add: ## Stage all changes for git
 ifndef EMBEDDED
 	@printf "\n"
@@ -40,6 +43,10 @@ ifndef EMBEDDED
 	@printf "\n"
 endif
 
+# ═══════════════════════════════════════════════════════════════
+# 📝 GIT COMMIT - Create a timestamped commit from staged changes
+# ═══════════════════════════════════════════════════════════════
+# ──── Quick Commit: Stages all and commits with timestamp ────
 git-commit: ## Quick commit with timestamp
 ifndef EMBEDDED
 	@printf "\n"
@@ -74,10 +81,15 @@ ifndef EMBEDDED
 	@printf "\n"
 endif
 
+# ──── Composite: Stage and commit in one step ────────────────
 git-add-commit: ## Stage and commit all changes together
 	@$(MAKE) -s git-add
 	@$(MAKE) -s git-commit
 
+# ═══════════════════════════════════════════════════════════════
+# ☁️  GIT PUSH - Sync local commits to remote repository
+# ═══════════════════════════════════════════════════════════════
+# ──── Push: Sends unpushed commits to origin via git push ────
 git-push: ## Push to remote using GitHub CLI
 ifndef EMBEDDED
 	@printf "\n"
@@ -109,6 +121,10 @@ ifndef EMBEDDED
 	@printf "\n"
 endif
 
+# ═══════════════════════════════════════════════════════════════
+# 📊 GIT STATUS - Show repository state and recent commits
+# ═══════════════════════════════════════════════════════════════
+# ──── Status: Branch, remote, local changes, last 3 commits ─
 git-status: ## Show git status with GitHub CLI
 ifndef EMBEDDED
 	@printf "\n"
@@ -163,6 +179,10 @@ ifndef EMBEDDED
 	@printf "\n"
 endif
 
+# ═══════════════════════════════════════════════════════════════
+# 🔄 GIT DIFF - Show uncommitted changes in .nix files
+# ═══════════════════════════════════════════════════════════════
+# ──── Diff: Filtered to *.nix files with summary and detail ─
 git-diff: ## Show uncommitted changes to .nix configuration files
 ifndef EMBEDDED
 	@printf "\n"
@@ -205,6 +225,10 @@ ifndef EMBEDDED
 	@printf "\n"
 endif
 
+# ═══════════════════════════════════════════════════════════════
+# 📜 GIT LOG - Show recent commit history
+# ═══════════════════════════════════════════════════════════════
+# ──── Log: Last 15 commits with short hash, message, age ────
 git-log: ## Show recent changes from git log
 ifndef EMBEDDED
 	@printf "\n"
