@@ -186,52 +186,49 @@ endif
 # 💾 GEN-SIZES - Show disk usage for all generations
 # ═══════════════════════════════════════════════════════════════
 # ──── Reports 'du -sh' size for each system generation link ────
-# Show disk usage for all generations
 gen-sizes: ## Show size of generations
 ifndef EMBEDDED
 	@printf "\n"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(CYAN)             💾 Generations Size Report                 \n$(NC)"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
-endif
-	
-	@printf "$(GREEN)1.$(NC) $(BLUE)Size Analysis:$(NC)\n"
+	@printf "$(CYAN)💾 gen-sizes · disk usage per generation$(NC)\n"
 	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
-	@sudo nix-env --list-generations --profile /nix/var/nix/profiles/system | \
-	awk '{print $$1}' | while read -r gen; do \
-		SIZE=$$(du -sh /nix/var/nix/profiles/system-$$gen-link 2>/dev/null | awk '{print $$1}'); \
-		printf "  Gen %-4s: %s\n" "$$gen" "$$SIZE"; \
-	done
-	
-ifndef EMBEDDED
-	@printf "\n$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(GREEN) ✅ Report complete$(NC)\n"
-	@printf "$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
 endif
+	@sudo nix-env --list-generations --profile /nix/var/nix/profiles/system | \
+	while read -r gen date time flags; do \
+		LINK="/nix/var/nix/profiles/system-$$gen-link"; \
+		TARGET=$$(readlink -f "$$LINK" 2>/dev/null); \
+		if [ -n "$$TARGET" ]; then \
+			SIZE_BYTES=$$(nix path-info -S "$$TARGET" 2>/dev/null | awk '{print $$2}'); \
+			HUMAN=$$(echo "$$SIZE_BYTES" | awk '{if($$1>1073741824) printf "%.1fG",$$1/1073741824; else if($$1>1048576) printf "%.1fM",$$1/1048576; else if($$1>1024) printf "%.1fK",$$1/1024; else printf "%dB",$$1}'); \
+			MARKER=""; \
+			if echo "$$flags" | grep -q "current"; then MARKER=" ◀ current"; fi; \
+			printf "  Gen %-4s: %-8s  %s%s\n" "$$gen" "$$HUMAN" "$$date" "$$MARKER"; \
+		else \
+			printf "  Gen %-4s: (link not found)\n" "$$gen"; \
+		fi; \
+	done
+ifndef EMBEDDED
+	@printf "\n$(GREEN)  ✓ done$(NC)\n"
+endif
+	@printf "\n$(YELLOW)📋 Quick Actions:$(NC)\n"
+	@printf "$(DIM)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
+	@printf "  • list generations:  $(BLUE)make gen-list$(NC)\n"
+	@printf "  • current gen info:  $(BLUE)make gen-current$(NC)\n\n"
 
 # ═══════════════════════════════════════════════════════════════
 # 📌 GEN-CURRENT - Show details of the active generation
 # ═══════════════════════════════════════════════════════════════
 # ──── Filters nix-env generation list for 'current' marker ─────
-# Show details of the current generation
 gen-current: ## Show current generation info
 ifndef EMBEDDED
 	@printf "\n"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(CYAN)             📌 Current Generation Info                 \n$(NC)"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
-endif
-	
-	@printf "$(GREEN)1.$(NC) $(BLUE)Active Generation:$(NC)\n"
+	@printf "$(CYAN)📌 gen-current · active generation$(NC)\n"
 	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
-	@sudo nix-env --list-generations --profile /nix/var/nix/profiles/system | grep current
-	
-ifndef EMBEDDED
-	@printf "\n$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(GREEN) ✅ Info complete$(NC)\n"
-	@printf "$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
 endif
+	@sudo nix-env --list-generations --profile /nix/var/nix/profiles/system | grep current
+ifndef EMBEDDED
+	@printf "\n$(GREEN)  ✓ done$(NC)\n"
+endif
+	@printf "\n$(YELLOW)📋 Quick Actions:$(NC)\n"
+	@printf "$(DIM)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
+	@printf "  • list all:           $(BLUE)make gen-list$(NC)\n"
+	@printf "  • diff current/prev:  $(BLUE)make gen-diff-current$(NC)\n\n"
