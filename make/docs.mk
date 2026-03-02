@@ -1,15 +1,18 @@
-# ============================================================================
-# Help and Documentation
-# ============================================================================
-# Description: Targets for displaying help, examples, and documentation
-# Documentation: docs/src/content/docs/makefile/01-docs.mdx
-# Targets: 7 targets
-# ============================================================================
+# ═══════════════════════════════════════════════════════════════
+# 📚 HELP AND DOCUMENTATION - Commands reference and docs site
+# ═══════════════════════════════════════════════════════════════
+# 📚 Documentation: docs/src/content/docs/makefile/01-docs.mdx
+# 🎯 Purpose: Display help, usage examples and manage the Astro docs site
+# ──── Overview: 7 targets for help display and docs site management ─
 
-.PHONY: help help-examples docs-local doc-dev doc-build doc-install doc-clean
+.PHONY: help help-examples doc-local doc-dev doc-build doc-install doc-clean
 
 # === Help and Documentation ===
 
+# ═══════════════════════════════════════════════════════════════
+# 📖 HELP - Show all available commands organized by category
+# ═══════════════════════════════════════════════════════════════
+# ──── Uses AWK to parse ## comments into a formatted menu ─────
 # Main help target - shows all available commands organized by category
 # Uses AWK to parse inline comments (##) and display them in a formatted menu
 help: ## Show this help message
@@ -37,7 +40,7 @@ endif
 		} \
 	} \
 	END { \
-		print_cat("Documentation & Help", "help help-examples help-aliases docs-local doc-dev doc-build doc-install doc-clean"); \
+		print_cat("Documentation & Help", "help help-examples help-aliases doc-local doc-dev doc-build doc-install doc-clean"); \
 		print_cat("System Maintenance", "sys-apply sys-apply-safe sys-apply-fast sys-test sys-build sys-dry-run sys-boot sys-check sys-debug sys-force sys-doctor sys-fix-git sys-hw-scan sys-copy-hw-config sys-deploy"); \
 		print_cat("Cleanup & Optimization", "sys-gc sys-purge sys-optimize sys-clean-result sys-fix-store"); \
 		print_cat("Updates & Flakes", "upd-all upd-nixpkgs upd-hydenix upd-input upd-ai upd-diff upd-upgrade upd-show upd-check"); \
@@ -60,6 +63,10 @@ endif
 	@printf "• Legacy aliases:    $(BLUE)make help-aliases$(NC)\n"
 	@printf "\n"
 
+# ═══════════════════════════════════════════════════════════════
+# 💡 HELP-EXAMPLES - Show usage examples for common workflows
+# ═══════════════════════════════════════════════════════════════
+# ──── Displays categorized practical command examples ──────────
 # Show detailed usage examples for commands that require parameters
 # Organized by category with practical examples
 help-examples: ## Show usage examples for common workflows
@@ -113,6 +120,10 @@ endif
 	@printf "• View commands:     $(BLUE)make help$(NC)\n"
 	@printf "\n"
 
+# ═══════════════════════════════════════════════════════════════
+# 📂 DOC-LOCAL - Show local documentation files
+# ═══════════════════════════════════════════════════════════════
+# ──── Scans for README, tutorials and docs/ directory ────────
 # List all available documentation files in the project
 # Scans for README, tutorials, and docs/ directory
 doc-local: ## Show local documentation files
@@ -144,6 +155,10 @@ ifndef EMBEDDED
 	@printf "\n"
 endif
 
+# ═══════════════════════════════════════════════════════════════
+# 🛠️  DOC-DEV - Start Astro documentation development server
+# ═══════════════════════════════════════════════════════════════
+# ──── Auto-installs dependencies if needed ───────────────────
 # Start Astro documentation development server
 # Automatically installs dependencies if needed
 doc-dev: ## Run documentation dev server
@@ -159,6 +174,10 @@ endif
 	@printf "$(BLUE)Starting Astro dev server...$(NC)\n"
 	@cd docs && npm run dev
 
+# ═══════════════════════════════════════════════════════════════
+# 🏗️  DOC-BUILD - Build the static documentation site
+# ═══════════════════════════════════════════════════════════════
+# ──── Runs 'npm run build' in docs/ directory ─────────────────
 # Build static documentation site
 doc-build: ## Build documentation site
 ifndef EMBEDDED
@@ -175,6 +194,10 @@ endif
 	@printf "$(GREEN)✓ Build complete$(NC)\n"
 	@printf "\n"
 
+# ═══════════════════════════════════════════════════════════════
+# 📥 DOC-INSTALL - Install documentation Node.js dependencies
+# ═══════════════════════════════════════════════════════════════
+# ──── Run before doc-dev or doc-build ────────────────────────
 # Install documentation dependencies
 # Run this before using docs-dev or docs-build
 doc-install: ## Install documentation dependencies
@@ -195,6 +218,10 @@ ifndef EMBEDDED
 	@printf "\n"
 endif
 
+# ═══════════════════════════════════════════════════════════════
+# 🧹 DOC-CLEAN - Remove documentation build artifacts
+# ═══════════════════════════════════════════════════════════════
+# ──── Deletes docs/dist and docs/node_modules ─────────────────
 # Clean documentation build artifacts
 doc-clean: ## Clean documentation artifacts
 ifndef EMBEDDED
