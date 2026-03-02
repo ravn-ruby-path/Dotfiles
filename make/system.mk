@@ -45,7 +45,10 @@ endif
 # ═══════════════════════════════════════════════════════════════
 # 🛡️ SAFE DEPLOYMENT - Validate before applying changes
 # ═══════════════════════════════════════════════════════════════
+# ──── Safe Apply: Validate configuration before deployment ──
+sys-apply-safe: sys-check sys-apply ## Validate then switch (safest option)
 
+# ──── Fast Apply: Skip internal nixos-rebuild checks for speed ─
 # Fast rebuild skipping internal nixos-rebuild checks for speed
 sys-apply-fast: ## Quick rebuild (skip checks)
 ifndef EMBEDDED
@@ -72,8 +75,8 @@ endif
 # ═══════════════════════════════════════════════════════════════
 # 🧪 CONFIGURATION TESTING - Test builds without activation
 # ═══════════════════════════════════════════════════════════════
+sys-test: ## Test Configuration: Build and test without permanent changes
 ifndef EMBEDDED
-sys-test: ## Test Configuration: Build and test without permanent changes ─
 	@printf "\n"
 	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
 	@printf "$(CYAN)             🧪 Test Configuration (Dry Switch)         \n$(NC)"
@@ -361,7 +364,6 @@ endif
 	@printf "$(BLUE)📋 File permissions set to user: $$USER\n$(NC)"
 	@printf "$(CYAN)════════════════════════════════════════════════════\n$(NC)"
 	@printf "\n"
-endif
 
 
 # ──── Hardware Scan: Generate new hardware configuration ─
