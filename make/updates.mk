@@ -30,27 +30,21 @@ endif
 # 🔄 UPD-ALL - Update all flake inputs to their latest versions
 # ═══════════════════════════════════════════════════════════════
 # ──── Runs 'nix flake update' in FLAKE_DIR ──────────────────
-# Update all flake inputs to their latest versions
 upd-all: ## Update all flake inputs
 ifndef EMBEDDED
 	@printf "\n"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(CYAN)             🔄 Update All Flake Inputs                 \n$(NC)"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
-endif
-	
-	@printf "$(GREEN)1.$(NC) $(BLUE)Updating Dependencies:$(NC)\n"
+	@printf "$(CYAN)🔄 upd-all · update all flake inputs$(NC)\n"
 	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
-	@printf "$(BLUE)Fetching latest versions for all inputs...$(NC)\n\n"
-	nix flake update
-	
-ifndef EMBEDDED
-	@printf "\n$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(GREEN) ✅ Update complete$(NC)\n"
-	@printf "$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
 endif
+	@printf "  fetching latest versions for all inputs...\n"
+	@$(EXEC) nix flake update
+ifndef EMBEDDED
+	@printf "\n$(GREEN)  ✓ done$(NC)\n"
+endif
+	@printf "\n$(YELLOW)📋 Quick Actions:$(NC)\n"
+	@printf "$(DIM)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
+	@printf "  • review changes: $(BLUE)make upd-diff$(NC)\n"
+	@printf "  • apply to system: $(BLUE)make sys-apply$(NC)\n\n"
 
 # ═══════════════════════════════════════════════════════════════
 # 📦 UPD-NIXPKGS - Update only the nixpkgs flake input
@@ -59,22 +53,18 @@ endif
 upd-nixpkgs: ## Update only nixpkgs input
 ifndef EMBEDDED
 	@printf "\n"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(CYAN)             📦 Update Nixpkgs Input                    \n$(NC)"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
-endif
-	
-	@printf "$(GREEN)1.$(NC) $(BLUE)Updating Nixpkgs:$(NC)\n"
+	@printf "$(CYAN)📦 upd-nixpkgs · update only nixpkgs$(NC)\n"
 	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
-	nix flake update nixpkgs --flake $(FLAKE_DIR)
-	
-ifndef EMBEDDED
-	@printf "\n$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(GREEN) ✅ Nixpkgs updated$(NC)\n"
-	@printf "$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
 endif
+	@printf "  targeting nixpkgs only to minimize disruption...\n"
+	@$(EXEC) nix flake update nixpkgs --flake $(FLAKE_DIR)
+ifndef EMBEDDED
+	@printf "\n$(GREEN)  ✓ done$(NC)\n"
+endif
+	@printf "\n$(YELLOW)📋 Quick Actions:$(NC)\n"
+	@printf "$(DIM)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
+	@printf "  • review changes: $(BLUE)make upd-diff$(NC)\n"
+	@printf "  • apply to system: $(BLUE)make sys-apply$(NC)\n\n"
 
 # ═══════════════════════════════════════════════════════════════
 # 📦 UPD-HYDENIX - Update only the hydenix flake input
@@ -83,207 +73,149 @@ endif
 upd-hydenix: ## Update only hydenix input
 ifndef EMBEDDED
 	@printf "\n"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(CYAN)             📦 Update Hydenix Input                    \n$(NC)"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
-endif
-	
-	@printf "$(GREEN)1.$(NC) $(BLUE)Updating Hydenix:$(NC)\n"
+	@printf "$(CYAN)📦 upd-hydenix · update only hydenix$(NC)\n"
 	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
-	nix flake update hydenix --flake $(FLAKE_DIR)
-	
-ifndef EMBEDDED
-	@printf "\n$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(GREEN) ✅ Hydenix updated$(NC)\n"
-	@printf "$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
 endif
+	@printf "  pulling latest from hydenix upstream...\n"
+	@$(EXEC) nix flake update hydenix --flake $(FLAKE_DIR)
+ifndef EMBEDDED
+	@printf "\n$(GREEN)  ✓ done$(NC)\n"
+endif
+	@printf "\n$(YELLOW)📋 Quick Actions:$(NC)\n"
+	@printf "$(DIM)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
+	@printf "  • review changes: $(BLUE)make upd-diff$(NC)\n"
+	@printf "  • apply to system: $(BLUE)make sys-apply$(NC)\n\n"
 
 # ═══════════════════════════════════════════════════════════════
 # 🤖 UPD-AI - Update AI tool inputs (opencode, nixpkgs-unstable, llm-agents)
 # ═══════════════════════════════════════════════════════════════
 # ──── Updates AI inputs then immediately applies configuration ───
-# Update OpenCode + Cursor/Antigravity (nixpkgs-unstable) and apply in one go
 upd-ai: ## Update OpenCode, Cursor and Antigravity, then apply (update + sys-apply)
 ifndef EMBEDDED
 	@printf "\n"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(CYAN)             🤖 Update AI Tools & Apply                 \n$(NC)"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
+	@printf "$(CYAN)🤖 upd-ai · update ai tools and apply$(NC)\n"
+	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
 endif
-	
-	@printf "$(GREEN)1.$(NC) $(BLUE)Updating Inputs:$(NC)\n"
-	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
-	@printf "$(BLUE)Updating opencode, nixpkgs-unstable, llm-agents...$(NC)\n"
-	nix flake update --flake $(FLAKE_DIR) opencode nixpkgs-unstable llm-agents
-	
-	@printf "\n$(GREEN)2.$(NC) $(BLUE)Applying Configuration:$(NC)\n"
-	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
-	@$(MAKE) --no-print-directory sys-apply
-	
+	@printf "  updating opencode, nixpkgs-unstable, llm-agents...\n"
+	@$(EXEC) nix flake update --flake $(FLAKE_DIR) opencode nixpkgs-unstable llm-agents
+	@$(MAKE) --no-print-directory EMBEDDED=1 sys-apply
 ifndef EMBEDDED
-	@printf "\n$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(GREEN) ✅ AI tools update complete$(NC)\n"
-	@printf "$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
+	@printf "\n$(GREEN)  ✓ done$(NC)\n"
 endif
+	@printf "\n$(YELLOW)📋 Quick Actions:$(NC)\n"
+	@printf "$(DIM)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
+	@printf "  • check current generation: $(BLUE)make gen-current$(NC)\n"
+	@printf "  • view error logs: $(BLUE)make log-err$(NC)\n\n"
 
 # ═══════════════════════════════════════════════════════════════
 # 📦 UPD-INPUT - Update a specific named flake input
 # ═══════════════════════════════════════════════════════════════
 # ──── Requires INPUT=<name>, e.g. make upd-input INPUT=nixpkgs ─
-# Allows targeted updates of individual flake dependencies
 upd-input: ## Update a specific input (use INPUT=name)
-	@if [ -z "$(INPUT)" ]; then \
-		printf "\n" ; \
-		printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"; \
-		printf "$(CYAN)             📦 Update Specific Input                   \n$(NC)"; \
-		printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"; \
-		printf "\n"; \
-		printf "$(RED)❌ Error: Variable INPUT is required$(NC)\n"; \
-		printf "\n"; \
-		printf "$(YELLOW)Usage: make upd-input INPUT=<name>$(NC)\n"; \
-		printf "\n"; \
-		printf "$(BLUE)Common inputs:$(NC) nixpkgs, hydenix, nixos-hardware, zen-browser-flake\n"; \
-		printf "\n$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"; \
-		printf "\n"; \
+	@if [ -z "$(INPUT)" ] && [ "$(DRY_RUN)" != "1" ]; then \
+		printf "$(RED)  ✗ INPUT is required$(NC)\n"; \
+		printf "  usage: make upd-input INPUT=<name>\n"; \
+		printf "$(DIM)  common inputs: nixpkgs, hydenix, nixos-hardware, zen-browser-flake$(NC)\n\n"; \
 		exit 1; \
 	fi
 ifndef EMBEDDED
 	@printf "\n"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(CYAN)             📦 Update Specific Input                   \n$(NC)"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
-endif
-	
-	@printf "$(GREEN)1.$(NC) $(BLUE)Updating $(INPUT):$(NC)\n"
+	@printf "$(CYAN)📦 upd-input · update $(or $(INPUT),[input-name])$(NC)\n"
 	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
-	nix flake update $(INPUT) --flake $(FLAKE_DIR)
-	
-ifndef EMBEDDED
-	@printf "\n$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(GREEN) ✅ Input updated$(NC)\n"
-	@printf "$(BLUE)Tip: Use 'make upd-diff' to review changes.$(NC)\n"
-	@printf "$(YELLOW)Reminder: Run 'make sys-apply' to apply changes.$(NC)\n"
-	@printf "$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
 endif
+	@printf "  updating $(or $(INPUT),[input-name])...\n"
+	@$(EXEC) nix flake update $(or $(INPUT),[input-name]) --flake $(FLAKE_DIR)
+ifndef EMBEDDED
+	@printf "\n$(GREEN)  ✓ done$(NC)\n"
+endif
+	@printf "\n$(YELLOW)📋 Quick Actions:$(NC)\n"
+	@printf "$(DIM)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
+	@printf "  • review changes: $(BLUE)make upd-diff$(NC)\n"
+	@printf "  • apply to system: $(BLUE)make sys-apply$(NC)\n\n"
 
 # ═══════════════════════════════════════════════════════════════
 # 📊 UPD-DIFF - Show what flake inputs changed in flake.lock
 # ═══════════════════════════════════════════════════════════════
 # ──── Shows git diff of flake.lock to review version changes ───
-# Show intelligent diff showing what inputs changed in flake.lock
 upd-diff: ## Show versions differences in flake.lock
 ifndef EMBEDDED
 	@printf "\n"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(CYAN)             📊 Flake Changes Analysis                  \n$(NC)"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
-endif
-	
-	@printf "$(GREEN)1.$(NC) $(BLUE)Lockfile Status:$(NC)\n"
+	@printf "$(CYAN)📊 upd-diff · flake.lock changes$(NC)\n"
 	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
-	@HAS_LOCK_CHANGES=$(git diff --quiet flake.lock && echo "no" || echo "yes"); \
-	if [ "$$HAS_LOCK_CHANGES" = "no" ]; then \
-		printf "$(GREEN)✓ No uncommitted changes in flake.lock$(NC)\n"; \
-		printf "$(BLUE)Tip: Run 'make upd-all' to update flake inputs$(NC)\n"; \
-ifndef EMBEDDED
-		printf "\n$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"; \
-		printf "$(GREEN) ✅ Analysis complete$(NC)\n"; \
-		printf "$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"; \
-		printf "\n"; \
 endif
+	@if git diff --quiet flake.lock 2>/dev/null; then \
+		printf "  no uncommitted changes in flake.lock\n"; \
 	else \
-		printf "$(YELLOW)⚠️  Changes detected in flake.lock:$(NC)\n\n"; \
+		printf "$(YELLOW)  ⚠  changes detected in flake.lock:$(NC)\n\n"; \
 		git diff flake.lock; \
-ifndef EMBEDDED
-		printf "\n$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"; \
-		printf "$(GREEN) ✅ Changes displayed$(NC)\n"; \
-		printf "$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"; \
-		printf "\n"; \
-endif
 	fi
+ifndef EMBEDDED
+	@printf "\n$(GREEN)  ✓ done$(NC)\n"
+endif
+	@printf "\n$(YELLOW)📋 Quick Actions:$(NC)\n"
+	@printf "$(DIM)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
+	@printf "  • update all inputs: $(BLUE)make upd-all$(NC)\n"
+	@printf "  • apply to system: $(BLUE)make sys-apply$(NC)\n\n"
 
 # ═══════════════════════════════════════════════════════════════
 # 🚀 UPD-UPGRADE - Full upgrade: sync submodules + update flakes + apply
 # ═══════════════════════════════════════════════════════════════
 # ──── Runs .upd-externals → upd-all → sys-apply-safe in sequence ───
-# Complete upgrade workflow: sync everything and apply
 upd-upgrade: ## [MASTER] Update EVERYTHING (Submodules + Flakes + Apply)
 ifndef EMBEDDED
 	@printf "\n"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(CYAN)             🚀 Master Upgrade (Total Sync)             \n$(NC)"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
+	@printf "$(CYAN)🚀 upd-upgrade · full upgrade (submodules + flakes + apply)$(NC)\n"
+	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
 endif
-	
-	@$(MAKE) --no-print-directory .upd-externals
-	@$(MAKE) --no-print-directory upd-all
-	@$(MAKE) --no-print-directory sys-apply-safe
-	
+	@$(MAKE) --no-print-directory EMBEDDED=1 .upd-externals
+	@$(MAKE) --no-print-directory EMBEDDED=1 upd-all
+	@$(MAKE) --no-print-directory EMBEDDED=1 sys-apply-safe
 ifndef EMBEDDED
-	@printf "\n$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(GREEN) ✅ System upgraded successfully$(NC)\n"
-	@printf "$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
+	@printf "\n$(GREEN)  ✓ done$(NC)\n"
 endif
+	@printf "\n$(YELLOW)📋 Quick Actions:$(NC)\n"
+	@printf "$(DIM)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
+	@printf "  • check current generation: $(BLUE)make gen-current$(NC)\n"
+	@printf "  • view error logs: $(BLUE)make log-err$(NC)\n\n"
 
 # ═══════════════════════════════════════════════════════════════
 # 📄 UPD-SHOW - Display all available flake outputs and metadata
 # ═══════════════════════════════════════════════════════════════
 # ──── Runs 'nix flake show' and filters warnings ────────────
-# Display all available outputs from the flake
 upd-show: ## Show flake outputs and metadata
 ifndef EMBEDDED
 	@printf "\n"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(CYAN)             📄 Flake Outputs Structure                 \n$(NC)"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
-endif
-	
-	@printf "$(GREEN)1.$(NC) $(BLUE)Outputs:$(NC)\n"
+	@printf "$(CYAN)📄 upd-show · flake outputs and metadata$(NC)\n"
 	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
-	@nix flake show $(FLAKE_DIR) 2>&1 | grep -v "^warning:" || nix flake show $(FLAKE_DIR) 2>/dev/null || true
-	
-ifndef EMBEDDED
-	@printf "\n$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(GREEN) ✅ Show complete$(NC)\n"
-	@printf "$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
 endif
+	@nix flake show $(FLAKE_DIR) 2>&1 | grep -v "^warning:" || nix flake show $(FLAKE_DIR) 2>/dev/null || true
+ifndef EMBEDDED
+	@printf "\n$(GREEN)  ✓ done$(NC)\n"
+endif
+	@printf "\n$(YELLOW)📋 Quick Actions:$(NC)\n"
+	@printf "$(DIM)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
+	@printf "  • update all inputs: $(BLUE)make upd-all$(NC)\n"
+	@printf "  • check flake: $(BLUE)make upd-check$(NC)\n\n"
 
 # ═══════════════════════════════════════════════════════════════
 # 📋 UPD-CHECK - Validate flake syntax and structure without building
 # ═══════════════════════════════════════════════════════════════
 # ──── Runs 'nix flake check' — no system changes applied ─────
-# Validate flake syntax and structure without building
 upd-check: ## Check flake consistency
 ifndef EMBEDDED
 	@printf "\n"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(CYAN)             📋 Check Flake Consistency                 \n$(NC)"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
-endif
-	
-	@printf "$(GREEN)1.$(NC) $(BLUE)Integrity Check:$(NC)\n"
+	@printf "$(CYAN)📋 upd-check · validate flake syntax$(NC)\n"
 	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
-	@printf "$(BLUE)Running nix flake check...$(NC)\n"
-	nix flake check $(FLAKE_DIR)
-	
-ifndef EMBEDDED
-	@printf "\n$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(GREEN) ✅ Check complete$(NC)\n"
-	@printf "$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
 endif
+	@printf "  running nix flake check...\n"
+	@nix flake check $(FLAKE_DIR)
+ifndef EMBEDDED
+	@printf "\n$(GREEN)  ✓ done$(NC)\n"
+endif
+	@printf "\n$(YELLOW)📋 Quick Actions:$(NC)\n"
+	@printf "$(DIM)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
+	@printf "  • show flake outputs: $(BLUE)make upd-show$(NC)\n"
+	@printf "  • apply to system: $(BLUE)make sys-apply$(NC)\n\n"
 # Update dotfiles submodules and sync configs
 upd-dots: .upd-externals ## Update submodules and sync oh-my-tmux
 
@@ -292,19 +224,15 @@ upd-dots: .upd-externals ## Update submodules and sync oh-my-tmux
 .upd-externals:
 ifndef EMBEDDED
 	@printf "\n"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(CYAN)             🔄 Sync External Configurations            \n$(NC)"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
-endif
-	
-	@printf "$(GREEN)1.$(NC) $(BLUE)Syncing:$(NC)\n"
+	@printf "$(CYAN)🔄 .upd-externals · sync external configurations$(NC)\n"
 	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
-	@./make/sync-externals.sh
-	
-ifndef EMBEDDED
-	@printf "\n$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(GREEN) ✅ Sync complete$(NC)\n"
-	@printf "$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
 endif
+	@printf "  syncing external configs...\n"
+	@./make/sync-externals.sh
+ifndef EMBEDDED
+	@printf "\n$(GREEN)  ✓ done$(NC)\n"
+endif
+	@printf "\n$(YELLOW)📋 Quick Actions:$(NC)\n"
+	@printf "$(DIM)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
+	@printf "  • update all flake inputs: $(BLUE)make upd-all$(NC)\n"
+	@printf "  • apply to system: $(BLUE)make sys-apply$(NC)\n\n"

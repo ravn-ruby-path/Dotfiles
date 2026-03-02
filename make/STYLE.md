@@ -251,10 +251,10 @@ Generations from the last 30 days will be kept.
 | `docs.mk`      | ✅ completo |
 | `format.mk`    | ✅ completo |
 | `aliases.mk`   | ✅ completo |
-| `generations.mk` | ⏳ encabezado listo — targets pendientes de revisión manual |
+| `generations.mk` | ✅ completo |
 | `system.mk`    | ⏳ pendiente |
-| `updates.mk`   | ⏳ pendiente |
-| `logs.mk`      | ⏳ pendiente |
+| `updates.mk`   | ✅ completo |
+| `logs.mk`      | ✅ completo |
 | `git.mk`       | ⏳ pendiente |
 
 ---
