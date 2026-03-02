@@ -1,15 +1,18 @@
-# ============================================================================
-# Formatting, Linting, and Structure
-# ============================================================================
-# Description: Targets for formatting, linting, and structure visualization
-# Documentation: docs/src/content/docs/makefile/09-format.mdx
-# Targets: 4 targets
-# ============================================================================
+# ═══════════════════════════════════════════════════════════════
+# 🎨 FORMATTING AND LINTING - Code quality and structure tools
+# ═══════════════════════════════════════════════════════════════
+# 📚 Documentation: docs/src/content/docs/makefile/09-format.mdx
+# 🎯 Purpose: Format, lint, and visualize Nix code and project structure
+# ──── Overview: 4 targets for code quality and diff utilities ───────
 
 .PHONY: fmt-check fmt-lint fmt-tree fmt-diff
 
 # === Formatting and Structure ===
 
+# ═══════════════════════════════════════════════════════════════
+# 🎨 FMT-CHECK - Format all Nix files (alejandra or nixpkgs-fmt)
+# ═══════════════════════════════════════════════════════════════
+# ──── Auto-detects available formatter ─────────────────────────
 # Format all Nix files using nixpkgs-fmt or alejandra
 fmt-check: ## Format all nix files
 ifndef EMBEDDED
@@ -39,6 +42,10 @@ ifndef EMBEDDED
 	@printf "\n"
 endif
 
+# ═══════════════════════════════════════════════════════════════
+# 🔎 FMT-LINT - Lint Nix files for common issues
+# ═══════════════════════════════════════════════════════════════
+# ──── Uses statix to detect anti-patterns in Nix code ────────
 # Lint Nix files for common issues using statix
 fmt-lint: ## Check nix files for common issues
 ifndef EMBEDDED
@@ -65,6 +72,10 @@ ifndef EMBEDDED
 	@printf "\n"
 endif
 
+# ═══════════════════════════════════════════════════════════════
+# 📂 FMT-TREE - Show project structure tree
+# ═══════════════════════════════════════════════════════════════
+# ──── Excludes result*, node_modules, .git ────────────────────
 # Show project structure tree
 fmt-tree: ## Show project structure tree
 ifndef EMBEDDED
@@ -90,6 +101,10 @@ ifndef EMBEDDED
 	@printf "\n"
 endif
 
+# ═══════════════════════════════════════════════════════════════
+# 📉 FMT-DIFF - Show diff between local and system config
+# ═══════════════════════════════════════════════════════════════
+# ──── Compares local .nix files against /etc/nixos ───────────
 # Show diff between local and system config
 fmt-diff: ## Show diff between local and system config
 ifndef EMBEDDED
