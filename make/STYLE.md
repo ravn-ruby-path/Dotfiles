@@ -86,8 +86,8 @@ endif
 ## Patrón: Footer
 
 El `✓ done` solo aparece fuera de `EMBEDDED`. El bloque **Quick Actions**
-siempre se muestra — incluye header, separador, y cada comando con su
-descripción breve para que sea útil a cualquier usuario.
+siempre se muestra — incluye header, separador fino en `DIM`, y cada línea
+con formato **`• descripción: make cmd`** (descripción primero, comando en `BLUE`).
 
 ```makefile
 ifndef EMBEDDED
@@ -95,8 +95,8 @@ ifndef EMBEDDED
 endif
 	@printf "\n$(YELLOW)📋 Quick Actions:$(NC)\n"
 	@printf "$(DIM)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
-	@printf "$(DIM)  ·  make next-cmd    descripción breve\n"
-	@printf "  ·  make other-cmd   descripción breve$(NC)\n\n"
+	@printf "  • descripción breve de lo que hace: $(BLUE)make next-cmd$(NC)\n"
+	@printf "  • descripción breve de lo que hace: $(BLUE)make other-cmd$(NC)\n\n"
 ```
 
 **Salida:**
@@ -105,9 +105,18 @@ endif
 
 📋 Quick Actions:
 ────────────────────────────────────────────────────────────────────────────────
-  ·  make next-cmd    descripción breve
-  ·  make other-cmd   descripción breve
+  • descripción breve de lo que hace: make next-cmd
+  • descripción breve de lo que hace: make other-cmd
 ```
+_(descripción en blanco, comando en azul)_
+
+### Reglas del bloque Quick Actions
+
+- Separador `────` siempre en `$(DIM)` — no en `$(CYAN)`
+- Formato de cada línea: `"  • descripción: $(BLUE)make cmd$(NC)\n"`
+- Descripción primero, comando al final (igual que `help-aliases`)
+- Incluir solo los 2–3 comandos más relevantes como siguiente paso
+- Dentro de bloques shell (`if/else`): usar `printf` sin `@`
 
 ### ❌ Evitar (estilo antiguo)
 ```

@@ -58,8 +58,8 @@ ifndef EMBEDDED
 endif
 	@printf "\n$(YELLOW)📋 Quick Actions:$(NC)\n"
 	@printf "$(DIM)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
-	@printf "  · $(BLUE) make sys-status   $(NC)$(DIM) check disk usage$(NC)\n"
-	@printf "  · $(BLUE) make sys-optimize $(NC)$(DIM) deduplicate nix store$(NC)\n\n"
+	@printf "  • check disk usage: $(BLUE)make sys-status$(NC)\n"
+	@printf "  • deduplicate nix store: $(BLUE)make sys-optimize$(NC)\n\n"
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -100,8 +100,8 @@ endif
 		fi; \
 		printf "\n$(YELLOW)📋 Quick Actions:$(NC)\n"; \
 		printf "$(DIM)────────────────────────────────────────────────────────────────────────────────$(NC)\n"; \
-		printf "  · $(BLUE) make sys-status $(NC)$(DIM) check freed disk space$(NC)\n"; \
-		printf "  · $(BLUE) make gen-list   $(NC)$(DIM) verify no old generations remain$(NC)\n\n"; \
+		printf "  • check freed disk space: $(BLUE)make sys-status$(NC)\n"; \
+		printf "  • verify no old generations remain: $(BLUE)make gen-list$(NC)\n\n"; \
 	else \
 		printf "\n$(DIM)  cancelled — no changes made$(NC)\n\n"; \
 	fi
@@ -126,7 +126,7 @@ ifndef EMBEDDED
 endif
 	@printf "\n$(YELLOW)📋 Quick Actions:$(NC)\n"
 	@printf "$(DIM)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
-	@printf "  · $(BLUE) make sys-status $(NC)$(DIM) check freed disk space$(NC)\n\n"
+	@printf "  • check freed disk space: $(BLUE)make sys-status$(NC)\n\n"
 
 # ═══════════════════════════════════════════════════════════════
 # 🧹 SYS-CLEAN-RESULT - Remove result symlinks from nix build
@@ -167,7 +167,7 @@ ifndef EMBEDDED
 endif
 	@printf "\n$(YELLOW)📋 Quick Actions:$(NC)\n"
 	@printf "$(DIM)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
-	@printf "  · $(BLUE) make sys-build $(NC)$(DIM) rebuild to regenerate result symlinks$(NC)\n\n"
+	@printf "  • rebuild to regenerate result symlinks: $(BLUE)make sys-build$(NC)\n\n"
 
 # ═══════════════════════════════════════════════════════════════
 # 🔧 SYS-FIX-STORE - Verify and repair the Nix store for corruption
@@ -177,30 +177,24 @@ endif
 sys-fix-store: ## Attempt to repair nix store
 ifndef EMBEDDED
 	@printf "\n"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(CYAN)             🔧 Repair Nix Store                        \n$(NC)"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
-endif
-	
-	@printf "$(GREEN)1.$(NC) $(BLUE)Verifying Store:$(NC)\n"
+	@printf "$(CYAN)🔧 sys-fix-store · verify and repair nix store$(NC)\n"
 	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
-	@printf "$(BLUE)Checking content addressability and repairing corruption...$(NC)\n"
-	@printf "$(YELLOW)⚠️  This may take a long time (minutes to hours) on large systems.$(NC)\n"
+endif
+	@printf "  checks content addressability and repairs corruption\n"
+	@printf "$(YELLOW)  ⚠  may take minutes to hours on large stores$(NC)\n"
 	@printf "\n"
-	@if [ "$(DRY_RUN)" = "1" ]; then \
+	@if [ "$$DRY_RUN" = "1" ]; then \
 		printf "  ▶ [dry-run] nix-store --verify --check-contents --repair\n"; \
 	elif nix-store --verify --check-contents --repair; then \
-		printf "\n$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"; \
-		printf "$(GREEN) ✅ Store repair completed$(NC)\n"; \
-		printf "$(BLUE)All store paths verified and repaired.$(NC)\n"; \
-		printf "$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"; \
-		printf "\n"; \
+		printf "$(GREEN)  ✓ store verified and repaired$(NC)\n"; \
 	else \
-		printf "\n$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"; \
-		printf "$(RED) ❌ Store repair encountered errors$(NC)\n"; \
-		printf "$(YELLOW)Check the output above for details.$(NC)\n"; \
-		printf "$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"; \
-		printf "\n"; \
+		printf "$(RED)  ✗ repair encountered errors — check output above$(NC)\n"; \
 		exit 1; \
 	fi
+ifndef EMBEDDED
+	@printf "\n$(GREEN)  ✓ done$(NC)\n"
+endif
+	@printf "\n$(YELLOW)📋 Quick Actions:$(NC)\n"
+	@printf "$(DIM)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
+	@printf "  • collect garbage after repair: $(BLUE)make sys-gc$(NC)\n"
+	@printf "  • deduplicate repaired store: $(BLUE)make sys-optimize$(NC)\n\n"
