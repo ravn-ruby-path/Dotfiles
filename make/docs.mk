@@ -110,119 +110,95 @@ endif
 # 📂 DOC-LOCAL - Show local documentation files
 # ═══════════════════════════════════════════════════════════════
 # ──── Scans for README, tutorials and docs/ directory ────────
-# List all available documentation files in the project
-# Scans for README, tutorials, and docs/ directory
 doc-local: ## Show local documentation files
 ifndef EMBEDDED
 	@printf "\n"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(CYAN)             📚 Local Documentation                     \n$(NC)"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
-endif
-	
-	@printf "$(GREEN)1.$(NC) $(BLUE)Documentation Files:$(NC)\n"
+	@printf "$(CYAN)📂 doc-local · documentation files$(NC)\n"
 	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
+endif
 	@if [ -d "docs/src/content/docs" ]; then \
 		find docs/src/content/docs -name "*.md*" | sed 's|^docs/src/content/docs/|  📄 |'; \
 	elif [ -d "docs" ]; then \
 		find docs -name "*.md" | sed 's|^docs/|  📄 |'; \
 	else \
-		printf "$(RED)❌ 'docs' directory not found$(NC)\n"; \
+		printf "$(RED)  ❌ 'docs' directory not found$(NC)\n"; \
 	fi
-	@if [ -f "README.md" ]; then \
-		printf "  📄 README.md\n"; \
-	fi
-	
+	@if [ -f "README.md" ]; then printf "  📄 README.md\n"; fi
 ifndef EMBEDDED
-	@printf "\n$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(GREEN) ✅ List complete$(NC)\n"
-	@printf "$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
+	@printf "\n$(GREEN)  ✓ done$(NC)\n"
 endif
+	@printf "\n$(YELLOW)📋 Quick Actions:$(NC)\n"
+	@printf "$(DIM)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
+	@printf "  • start dev server: $(BLUE)make doc-dev$(NC)\n"
+	@printf "  • build site:       $(BLUE)make doc-build$(NC)\n\n"
 
 # ═══════════════════════════════════════════════════════════════
 # 🛠️  DOC-DEV - Start Astro documentation development server
 # ═══════════════════════════════════════════════════════════════
 # ──── Auto-installs dependencies if needed ───────────────────
-# Start Astro documentation development server
-# Automatically installs dependencies if needed
 doc-dev: ## Run documentation dev server
 ifndef EMBEDDED
 	@printf "\n"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(CYAN)             🛠️  Starting Documentation Server          \n$(NC)"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
-endif
-	@printf "$(GREEN)1.$(NC) $(BLUE)Launching Server:$(NC)\n"
+	@printf "$(CYAN)🛠️  doc-dev · start Astro dev server$(NC)\n"
 	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
-	@printf "$(BLUE)Starting Astro dev server...$(NC)\n"
-	@cd docs && npm run dev
+endif
+	@printf "$(DIM)  starting Astro dev server...$(NC)\n"
+	$(EXEC) cd docs && npm run dev
 
 # ═══════════════════════════════════════════════════════════════
 # 🏗️  DOC-BUILD - Build the static documentation site
 # ═══════════════════════════════════════════════════════════════
 # ──── Runs 'npm run build' in docs/ directory ─────────────────
-# Build static documentation site
 doc-build: ## Build documentation site
 ifndef EMBEDDED
 	@printf "\n"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(CYAN)             🏗️  Building Documentation                 \n$(NC)"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
-endif
-	@printf "$(GREEN)1.$(NC) $(BLUE)Building Site:$(NC)\n"
+	@printf "$(CYAN)🏗️  doc-build · build static site$(NC)\n"
 	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
-	@printf "$(BLUE)Generating static site (Astro build)...$(NC)\n"
-	@cd docs && npm run build
-	@printf "$(GREEN)✓ Build complete$(NC)\n"
-	@printf "\n"
+endif
+	@printf "$(DIM)  generating static site (Astro build)...$(NC)\n"
+	$(EXEC) cd docs && npm run build
+ifndef EMBEDDED
+	@printf "\n$(GREEN)  ✓ done$(NC)\n"
+endif
+	@printf "\n$(YELLOW)📋 Quick Actions:$(NC)\n"
+	@printf "$(DIM)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
+	@printf "  • clean artifacts: $(BLUE)make doc-clean$(NC)\n\n"
 
 # ═══════════════════════════════════════════════════════════════
 # 📥 DOC-INSTALL - Install documentation Node.js dependencies
 # ═══════════════════════════════════════════════════════════════
 # ──── Run before doc-dev or doc-build ────────────────────────
-# Install documentation dependencies
-# Run this before using docs-dev or docs-build
 doc-install: ## Install documentation dependencies
 ifndef EMBEDDED
 	@printf "\n"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(CYAN)             📥 Installing Documentation Tools          \n$(NC)"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
-endif
-	@printf "$(GREEN)1.$(NC) $(BLUE)Installing Node.js dependencies...$(NC)\n"
+	@printf "$(CYAN)📥 doc-install · install Node.js dependencies$(NC)\n"
 	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
-	@cd docs && npm install
-ifndef EMBEDDED
-	@printf "\n$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(GREEN) ✅ Installation complete$(NC)\n"
-	@printf "$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
 endif
+	@printf "$(DIM)  running npm install in docs/...$(NC)\n"
+	$(EXEC) cd docs && npm install
+ifndef EMBEDDED
+	@printf "\n$(GREEN)  ✓ done$(NC)\n"
+endif
+	@printf "\n$(YELLOW)📋 Quick Actions:$(NC)\n"
+	@printf "$(DIM)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
+	@printf "  • start dev server: $(BLUE)make doc-dev$(NC)\n"
+	@printf "  • build site:       $(BLUE)make doc-build$(NC)\n\n"
 
 # ═══════════════════════════════════════════════════════════════
 # 🧹 DOC-CLEAN - Remove documentation build artifacts
 # ═══════════════════════════════════════════════════════════════
 # ──── Deletes docs/dist and docs/node_modules ─────────────────
-# Clean documentation build artifacts
 doc-clean: ## Clean documentation artifacts
 ifndef EMBEDDED
 	@printf "\n"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(CYAN)             🧹 Cleaning Documentation Artifacts        \n$(NC)"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
-endif
-	@printf "$(GREEN)1.$(NC) $(BLUE)Cleaning:$(NC)\n"
+	@printf "$(CYAN)🧹 doc-clean · remove build artifacts$(NC)\n"
 	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
-	@rm -rf docs/dist docs/node_modules
-ifndef EMBEDDED
-	@printf "\n$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(GREEN) ✅ Clean complete$(NC)\n"
-	@printf "$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
 endif
+	@printf "$(DIM)  removing docs/dist and docs/node_modules...$(NC)\n"
+	$(EXEC) rm -rf docs/dist docs/node_modules
+ifndef EMBEDDED
+	@printf "\n$(GREEN)  ✓ done$(NC)\n"
+endif
+	@printf "\n$(YELLOW)📋 Quick Actions:$(NC)\n"
+	@printf "$(DIM)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
+	@printf "  • reinstall deps: $(BLUE)make doc-install$(NC)\n\n"
