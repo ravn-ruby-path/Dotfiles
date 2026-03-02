@@ -71,57 +71,39 @@ endif
 sys-purge: ## Aggressive cleanup (removes ALL old generations)
 ifndef EMBEDDED
 	@printf "\n"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(CYAN)             🗑️  Deep Purge (IRREVERSIBLE)                \n$(NC)"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
+	@printf "$(RED)🗑️  sys-purge · irreversible$(NC)\n"
+	@printf "$(RED)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
 endif
-	
-	@printf "$(GREEN)1.$(NC) $(BLUE)Critical Warning:$(NC)\n"
-	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
-	@printf "$(RED)⚠️  CRITICAL WARNING ⚠️$(NC)\n"
-	@printf "$(RED)This command will delete ALL old generations from the system.$(NC)\n"
-	@printf "$(RED)This action is IRREVERSIBLE and you will NOT be able to rollback.$(NC)\n"
+	@printf "$(RED)  ⚠  deletes ALL old generations — no rollback possible$(NC)\n"
 	@printf "\n"
-	@printf "$(YELLOW)What will be deleted?$(NC)\n"
-	@printf "$(YELLOW)  • ALL system generations (except current)$(NC)\n"
-	@printf "$(YELLOW)  • ALL user generations$(NC)\n"
-	@printf "$(YELLOW)  • ALL unreferenced packages$(NC)\n"
+	@printf "$(YELLOW)  what gets deleted:$(NC)\n"
+	@printf "$(DIM)    · all system generations (except current)\n"
+	@printf "    · all user generations\n"
+	@printf "    · all unreferenced packages$(NC)\n"
 	@printf "\n"
-	@printf "$(BLUE)Space to be freed: Maximum possible (typically 20-100+ GB)$(NC)\n"
-	@printf "\n"
-	
-	@printf "$(GREEN)2.$(NC) $(BLUE)Confirmation:$(NC)\n"
-	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
-	@printf "$(RED)Are you ABSOLUTELY sure? Type 'yes' to continue: $(NC)"; \
+	@printf "$(RED)  type 'yes' to continue: $(NC)"; \
 	read -r REPLY; \
 	if [ "$$REPLY" = "yes" ]; then \
 		if [ "$$DRY_RUN" = "1" ]; then \
 			printf "\n$(YELLOW)  ▶ [dry-run] Would execute:$(NC)\n"; \
-			printf "$(YELLOW)      sudo nix-collect-garbage -d$(NC)\n"; \
-			printf "$(YELLOW)      nix-collect-garbage -d$(NC)\n"; \
-			printf "$(YELLOW)      make sys-optimize$(NC)\n"; \
-			printf "$(YELLOW)      make sys-disk$(NC)\n"; \
+			printf "$(DIM)      sudo nix-collect-garbage -d\n"; \
+			printf "      nix-collect-garbage -d\n"; \
+			printf "      make sys-optimize\n"; \
+			printf "      make sys-disk$(NC)\n"; \
 		else \
-			printf "\n$(YELLOW)Executing deep purge...$(NC)\n\n"; \
+			printf "\n  purging...\n\n"; \
 			sudo nix-collect-garbage -d; \
 			nix-collect-garbage -d; \
-			printf "\n$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"; \
-			printf "$(GREEN) ✅ Deep purge completed$(NC)\n"; \
-			printf "$(RED)⚠️  ALL old generations have been deleted$(NC)\n"; \
-			printf "$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"; \
-			printf "\n"; \
-			printf "$(YELLOW)Step 2: Auto-Optimizing Nix Store...$(NC)\n"; \
-			$(MAKE) sys-optimize; \
-			printf "\n$(YELLOW)Step 3: Final Disk Report...$(NC)\n"; \
-			$(MAKE) sys-disk; \
+			$(MAKE) --no-print-directory sys-optimize EMBEDDED=1; \
+			$(MAKE) --no-print-directory sys-disk EMBEDDED=1; \
+			printf "\n$(GREEN)  ✓ done$(NC)\n"; \
 		fi; \
+		printf "\n$(YELLOW)📋 Quick Actions:$(NC)\n"; \
+		printf "$(DIM)────────────────────────────────────────────────────────────────────────────────$(NC)\n"; \
+		printf "$(DIM)  ·  make sys-status    check freed disk space\n"; \
+		printf "  ·  make gen-list      verify no old generations remain$(NC)\n\n"; \
 	else \
-		printf "\n$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"; \
-		printf "$(BLUE)ℹ️  Deep purge cancelled$(NC)\n"; \
-		printf "$(GREEN)✓ No changes were made to the system$(NC)\n"; \
-		printf "$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"; \
-		printf "\n"; \
+		printf "\n$(DIM)  cancelled — no changes made$(NC)\n\n"; \
 	fi
 
 # ═══════════════════════════════════════════════════════════════
