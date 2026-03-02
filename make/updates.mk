@@ -4,8 +4,25 @@
 # 📚 Documentation: docs/src/content/docs/makefile/04-updates.mdx
 # 🎯 Purpose: Update flake inputs, show diff and run full upgrade workflow
 # ──── Overview: 10 targets for flake and submodule updates ────────
+#
+# 🧪 Dry Run (preview without executing):
+#    make upd-all         DRY_RUN=1   · skip nix flake update
+#    make upd-nixpkgs     DRY_RUN=1   · skip nix flake update nixpkgs
+#    make upd-hydenix     DRY_RUN=1   · skip nix flake update hydenix
+#    make upd-input       DRY_RUN=1   · skip nix flake update INPUT=...
+#    make upd-ai          DRY_RUN=1   · skip update + sys-apply
+#    make upd-upgrade     DRY_RUN=1   · skip full upgrade sequence
+#    (upd-diff, upd-show, upd-check are read-only)
 
 .PHONY: upd-all upd-nixpkgs upd-hydenix upd-input upd-ai upd-diff upd-upgrade upd-show upd-check upd-dots .upd-externals
+
+DRY_RUN ?= 0
+export DRY_RUN
+ifeq ($(DRY_RUN),1)
+  EXEC = echo "  ▶ [dry-run]"
+else
+  EXEC =
+endif
 
 # === Flake Update ===
 
