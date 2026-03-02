@@ -6,9 +6,10 @@
 # ──── Overview: 7 targets for development and inspection tasks ────
 #
 # 🧪 Dry Run (preview without executing):
-#    make dev-repl   DRY_RUN=1
-#    make dev-shell  DRY_RUN=1
-#    make dev-vm     DRY_RUN=1
+#    make dev-repl   DRY_RUN=1   · skip launching repl
+#    make dev-shell  DRY_RUN=1   · skip entering shell
+#    make dev-vm     DRY_RUN=1   · skip build and run
+#    (dev-hosts, dev-search, dev-search-inst, dev-size are read-only)
 
 .PHONY: dev-hosts dev-search dev-search-inst dev-repl dev-shell dev-vm dev-size
 
@@ -205,27 +206,23 @@ endif
 # 📊 DEV-SIZE - Analyse closure size of a host or running system
 # ═══════════════════════════════════════════════════════════════
 # ──── Size: nix path-info -Sh; top 10 largest packages listed ────
-# Show closure size of a host or current system
 dev-size: ## Show closure size (use HOST=name)
+ifndef EMBEDDED
+	@printf "\n"
+	@printf "$(CYAN)📊 dev-size · closure size analysis$(NC)\n"
+	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
+endif
 	@HOST_PATH=$${HOST:+$(FLAKE_DIR)#nixosConfigurations.$$HOST.config.system.build.toplevel}; \
 	HOST_PATH=$${HOST_PATH:-/run/current-system}; \
-	if [ -z "$(EMBEDDED)" ]; then \
-		printf "\n"; \
-		printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"; \
-		printf "$(CYAN)             📊 System Closure Size Analysis            \n$(NC)"; \
-		printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"; \
-		printf "\n"; \
-	fi; \
-	printf "$(GREEN)1.$(NC) $(BLUE)Total Size:$(NC)\n"; \
-	printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"; \
-	printf "$(BLUE)Closure size for $$HOST_PATH:$(NC)\n"; \
+	printf "$(DIM)  target: $$HOST_PATH$(NC)\n\n"; \
+	printf "$(DIM)  total:$(NC)\n"; \
 	nix path-info -Sh $$HOST_PATH; \
-	printf "\n$(GREEN)2.$(NC) $(BLUE)Top 10 Largest Packages:$(NC)\n"; \
-	printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"; \
-	nix path-info -rSh $$HOST_PATH | sort -k2 -h | tail -10; \
-	if [ -z "$(EMBEDDED)" ]; then \
-	printf "\n$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"; \
-	printf "$(GREEN) ✅ Analysis complete$(NC)\n"; \
-	printf "$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"; \
-	printf "\n"; \
-	fi
+	printf "\n$(DIM)  top 10 largest:$(NC)\n"; \
+	nix path-info -rSh $$HOST_PATH | sort -k2 -h | tail -10
+ifndef EMBEDDED
+	@printf "\n$(GREEN)  ✓ done$(NC)\n"
+endif
+	@printf "\n$(YELLOW)📋 Quick Actions:$(NC)\n"
+	@printf "$(DIM)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
+	@printf "  • collect garbage: $(BLUE)make sys-gc$(NC)\n"
+	@printf "  • deduplicate store: $(BLUE)make sys-optimize$(NC)\n\n"

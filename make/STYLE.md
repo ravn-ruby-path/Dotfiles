@@ -146,12 +146,32 @@ else
 endif
 ```
 
-Uso en comandos simples:
+### Qué targets necesitan DRY_RUN
+
+Solo los targets que **modifican el sistema o lanzan procesos** necesitan DRY_RUN.
+Los targets **read-only** (búsquedas, listados, análisis) no lo necesitan.
+
+Documentar en el header del `.mk` qué targets lo soportan y cuáles son read-only:
+
+```makefile
+# 🧪 Dry Run (preview without executing):
+#    make sys-apply   DRY_RUN=1   · skip nixos-rebuild switch
+#    make sys-gc      DRY_RUN=1   · skip nix-collect-garbage
+#    (sys-check, sys-build are read-only)
+```
+
+Criterios:
+- ✅ Necesita DRY_RUN: `sudo`, builds, `nix-collect-garbage`, shells interactivos, VMs
+- ✗ No necesita: `find`, `ls`, `nix search`, `nix path-info`, `git log`, listados
+
+### Uso en comandos simples
+
 ```makefile
 @$(EXEC) sudo algún-comando --con-flags
 ```
 
-Uso en bloques shell (para comandos dentro de `if/else`):
+### Uso en bloques shell (para comandos dentro de `if/else`)
+
 ```bash
 if [ "$$DRY_RUN" = "1" ]; then \
     printf "  ▶ [dry-run] algún-comando\n"; \
