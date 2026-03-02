@@ -34,45 +34,32 @@ DAYS ?= 30
 sys-gc: ## Clean build artifacts older than specified days (default: 30)
 ifndef EMBEDDED
 	@printf "\n"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
 	@if [ "$(DAYS)" -eq 7 ]; then \
-		printf "$(CYAN)             🧹 Weekly Cleanup (7 Days)                 \n$(NC)"; \
+		printf "$(CYAN)🧹 sys-gc · weekly (7 days)$(NC)\n"; \
 	elif [ "$(DAYS)" -eq 30 ]; then \
-		printf "$(CYAN)             🧹 Standard Cleanup (30 Days)              \n$(NC)"; \
+		printf "$(CYAN)🧹 sys-gc · 30 days$(NC)\n"; \
 	elif [ "$(DAYS)" -eq 90 ]; then \
-		printf "$(CYAN)             🧹 Conservative Cleanup (90 Days)          \n$(NC)"; \
+		printf "$(CYAN)🧹 sys-gc · conservative (90 days)$(NC)\n"; \
 	else \
-		printf "$(CYAN)             🧹 System Cleanup ($(DAYS) Days)                  \n$(NC)"; \
+		printf "$(CYAN)🧹 sys-gc · $(DAYS) days$(NC)\n"; \
 	fi
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
+	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
 endif
-
-	@printf "$(GREEN)1.$(NC) $(BLUE)Analyzing Garbage Collection:$(NC)\n"
-	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
-	@printf "$(BLUE)Removing build artifacts older than $(DAYS) days...$(NC)\n"
 	@if [ "$(DAYS)" -lt 15 ]; then \
-		printf "$(YELLOW)⚠️  Warning: Only keeping $(DAYS) days of rollback history.\n$(NC)"; \
+		printf "$(YELLOW)  ⚠  keeping only $(DAYS) days — limited rollback history$(NC)\n"; \
 	else \
-		printf "$(BLUE)Generations from the last $(DAYS) days will be kept.\n$(NC)"; \
+		printf "  Removing build artifacts older than $(DAYS) days...\n"; \
 	fi
-	
-	@printf "\n$(GREEN)2.$(NC) $(BLUE)Running Garbage Collector:$(NC)\n"
-	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
+	@printf "\n"
 	@$(EXEC) sudo nix-collect-garbage --delete-older-than $(DAYS)d
 	@$(EXEC) nix-collect-garbage --delete-older-than $(DAYS)d
-	
 ifndef EMBEDDED
-	@printf "\n$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(GREEN) ✅ Cleanup completed (kept last $(DAYS) days)$(NC)\n"
-	@printf "$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
+	@printf "\n$(GREEN)  ✓ done$(NC)\n"
 endif
-	@printf "$(YELLOW)📋 Quick Actions:$(NC)\n"
-	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
-	@printf "• Check space:       $(BLUE)make sys-status$(NC)\n"
-	@printf "• Optimize store:    $(BLUE)make sys-optimize$(NC)\n"
-	@printf "\n"
+	@printf "\n$(YELLOW)📋 Quick Actions:$(NC)\n"
+	@printf "$(DIM)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
+	@printf "$(DIM)  ·  make sys-status    check disk usage\n"
+	@printf "  ·  make sys-optimize  deduplicate nix store$(NC)\n\n"
 
 
 # ═══════════════════════════════════════════════════════════════
