@@ -1,15 +1,18 @@
-# ============================================================================
-# Actualizaciones y Flakes
-# ============================================================================
-# Description: Targets for updating flake inputs and managing versions
-# Documentation: docs/src/content/docs/makefile/04-updates.mdx
-# Targets: 8 targets
-# ============================================================================
+# ═══════════════════════════════════════════════════════════════
+# 🔃 UPDATES AND FLAKES - Flake input management and version control
+# ═══════════════════════════════════════════════════════════════
+# 📚 Documentation: docs/src/content/docs/makefile/04-updates.mdx
+# 🎯 Purpose: Update flake inputs, show diff and run full upgrade workflow
+# ──── Overview: 10 targets for flake and submodule updates ────────
 
 .PHONY: upd-all upd-nixpkgs upd-hydenix upd-input upd-ai upd-diff upd-upgrade upd-show upd-check upd-dots .upd-externals
 
 # === Flake Update ===
 
+# ═══════════════════════════════════════════════════════════════
+# 🔄 UPD-ALL - Update all flake inputs to their latest versions
+# ═══════════════════════════════════════════════════════════════
+# ──── Runs 'nix flake update' in FLAKE_DIR ──────────────────
 # Update all flake inputs to their latest versions
 upd-all: ## Update all flake inputs
 ifndef EMBEDDED
@@ -32,6 +35,10 @@ ifndef EMBEDDED
 	@printf "\n"
 endif
 
+# ═══════════════════════════════════════════════════════════════
+# 📦 UPD-NIXPKGS - Update only the nixpkgs flake input
+# ═══════════════════════════════════════════════════════════════
+# ──── Targets nixpkgs only to minimize disruption ────────────
 upd-nixpkgs: ## Update only nixpkgs input
 ifndef EMBEDDED
 	@printf "\n"
@@ -52,6 +59,10 @@ ifndef EMBEDDED
 	@printf "\n"
 endif
 
+# ═══════════════════════════════════════════════════════════════
+# 📦 UPD-HYDENIX - Update only the hydenix flake input
+# ═══════════════════════════════════════════════════════════════
+# ──── Pulls latest from hydenix upstream only ───────────────
 upd-hydenix: ## Update only hydenix input
 ifndef EMBEDDED
 	@printf "\n"
@@ -72,6 +83,10 @@ ifndef EMBEDDED
 	@printf "\n"
 endif
 
+# ═══════════════════════════════════════════════════════════════
+# 🤖 UPD-AI - Update AI tool inputs (opencode, nixpkgs-unstable, llm-agents)
+# ═══════════════════════════════════════════════════════════════
+# ──── Updates AI inputs then immediately applies configuration ───
 # Update OpenCode + Cursor/Antigravity (nixpkgs-unstable) and apply in one go
 upd-ai: ## Update OpenCode, Cursor and Antigravity, then apply (update + sys-apply)
 ifndef EMBEDDED
@@ -98,6 +113,10 @@ ifndef EMBEDDED
 	@printf "\n"
 endif
 
+# ═══════════════════════════════════════════════════════════════
+# 📦 UPD-INPUT - Update a specific named flake input
+# ═══════════════════════════════════════════════════════════════
+# ──── Requires INPUT=<name>, e.g. make upd-input INPUT=nixpkgs ─
 # Allows targeted updates of individual flake dependencies
 upd-input: ## Update a specific input (use INPUT=name)
 	@if [ -z "$(INPUT)" ]; then \
@@ -136,6 +155,10 @@ ifndef EMBEDDED
 	@printf "\n"
 endif
 
+# ═══════════════════════════════════════════════════════════════
+# 📊 UPD-DIFF - Show what flake inputs changed in flake.lock
+# ═══════════════════════════════════════════════════════════════
+# ──── Shows git diff of flake.lock to review version changes ───
 # Show intelligent diff showing what inputs changed in flake.lock
 upd-diff: ## Show versions differences in flake.lock
 ifndef EMBEDDED
@@ -169,7 +192,10 @@ ifndef EMBEDDED
 endif
 	fi
 
-# Complete upgrade workflow: update inputs and apply safely
+# ═══════════════════════════════════════════════════════════════
+# 🚀 UPD-UPGRADE - Full upgrade: sync submodules + update flakes + apply
+# ═══════════════════════════════════════════════════════════════
+# ──── Runs .upd-externals → upd-all → sys-apply-safe in sequence ───
 # Complete upgrade workflow: sync everything and apply
 upd-upgrade: ## [MASTER] Update EVERYTHING (Submodules + Flakes + Apply)
 ifndef EMBEDDED
@@ -191,6 +217,10 @@ ifndef EMBEDDED
 	@printf "\n"
 endif
 
+# ═══════════════════════════════════════════════════════════════
+# 📄 UPD-SHOW - Display all available flake outputs and metadata
+# ═══════════════════════════════════════════════════════════════
+# ──── Runs 'nix flake show' and filters warnings ────────────
 # Display all available outputs from the flake
 upd-show: ## Show flake outputs and metadata
 ifndef EMBEDDED
@@ -212,6 +242,10 @@ ifndef EMBEDDED
 	@printf "\n"
 endif
 
+# ═══════════════════════════════════════════════════════════════
+# 📋 UPD-CHECK - Validate flake syntax and structure without building
+# ═══════════════════════════════════════════════════════════════
+# ──── Runs 'nix flake check' — no system changes applied ─────
 # Validate flake syntax and structure without building
 upd-check: ## Check flake consistency
 ifndef EMBEDDED
@@ -236,6 +270,8 @@ endif
 # Update dotfiles submodules and sync configs
 upd-dots: .upd-externals ## Update submodules and sync oh-my-tmux
 
+# === Internal Targets ===
+# ──── Internal: Called by upd-dots and upd-upgrade to sync externals ───
 .upd-externals:
 ifndef EMBEDDED
 	@printf "\n"
