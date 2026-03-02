@@ -1,15 +1,18 @@
-# ============================================================================
-# Analysis and Development
-# ============================================================================
-# Description: Targets for development, package search and analysis
-# Documentation: docs/src/content/docs/makefile/08-dev.mdx
-# Targets: 7 targets
-# ============================================================================
+# ═══════════════════════════════════════════════════════════════
+# 🔬 DEVELOPMENT TOOLS - Package search and analysis
+# ═══════════════════════════════════════════════════════════════
+# 📚 Documentation: docs/src/content/docs/makefile/08-dev.mdx
+# 🎯 Purpose: Host listing, package search, REPL, shell, VM and closure analysis
+# ──── Overview: 7 targets for development and inspection tasks ────
 
 .PHONY: dev-hosts dev-search dev-search-inst dev-repl dev-shell dev-vm dev-size
 
 # === Analysis and Development ===
 
+# ═══════════════════════════════════════════════════════════════
+# 🖥️  DEV-HOSTS - List all host configurations defined in the flake
+# ═══════════════════════════════════════════════════════════════
+# ──── Hosts: Scans hosts/ directory for NixOS configuration names ──
 # List all available hosts defined in the flake
 dev-hosts: ## List all available hosts
 ifndef EMBEDDED
@@ -68,6 +71,10 @@ ifndef EMBEDDED
 	@printf "\n"
 endif
 
+# ═══════════════════════════════════════════════════════════════
+# 🔍 DEV-SEARCH-INST - Search among already-installed packages
+# ═══════════════════════════════════════════════════════════════
+# ──── Installed search: PATH, nix-env, current-system, HM profiles ─
 # Search for a package in currently installed system/user profiles
 dev-search-inst: ## Search installed packages (use PKG=name)
 	@if [ -z "$$(PKG)" ]; then \
@@ -136,6 +143,10 @@ ifndef EMBEDDED
 	@printf "\n"
 endif
 
+# ═══════════════════════════════════════════════════════════════
+# 🧠 DEV-REPL - Open an interactive Nix REPL with the flake loaded
+# ═══════════════════════════════════════════════════════════════
+# ──── REPL: nix repl with repl-flake flag; inspect config live ────
 # Start nix repl with the current flake loaded
 dev-repl: ## Start nix repl with flake
 ifndef EMBEDDED
@@ -163,6 +174,10 @@ ifndef EMBEDDED
 	@printf "\n"
 endif
 
+# ═══════════════════════════════════════════════════════════════
+# 🐚 DEV-SHELL - Enter the flake development shell
+# ═══════════════════════════════════════════════════════════════
+# ──── Shell: nix develop or nix-shell fallback ───────────────────
 # Enter a development shell (uses flake's devShells or basic nix-shell)
 dev-shell: ## Enter development shell
 ifndef EMBEDDED
@@ -190,6 +205,10 @@ ifndef EMBEDDED
 	@printf "\n"
 endif
 
+# ═══════════════════════════════════════════════════════════════
+# 🖥️  DEV-VM - Build and run a NixOS virtual machine for testing
+# ═══════════════════════════════════════════════════════════════
+# ──── VM: Builds then runs result/bin/run-*-vm; HOST=name optional ─
 # Build and run a VM for testing configuration
 dev-vm: ## Build and run VM (use HOST=name)
 	@HOST=$${HOST:-$(HOSTNAME)}; \
@@ -224,6 +243,10 @@ dev-vm: ## Build and run VM (use HOST=name)
 		exit 1; \
 	fi
 
+# ═══════════════════════════════════════════════════════════════
+# 📊 DEV-SIZE - Analyse closure size of a host or running system
+# ═══════════════════════════════════════════════════════════════
+# ──── Size: nix path-info -Sh; top 10 largest packages listed ────
 # Show closure size of a host or current system
 dev-size: ## Show closure size (use HOST=name)
 	@HOST_PATH=$${HOST:+$(FLAKE_DIR)#nixosConfigurations.$$HOST.config.system.build.toplevel}; \
