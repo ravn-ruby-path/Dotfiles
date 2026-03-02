@@ -128,32 +128,25 @@ endif
 # 📊 GEN-DIFF - Compare any two generations
 # ═══════════════════════════════════════════════════════════════
 # ──── Requires GEN1=n GEN2=m — uses nix-diff ─────────────────
-# Compare any two generations (requires GEN1 and GEN2 variables)
 gen-diff: ## Compare two generations (use GEN1=n GEN2=m)
-	@if [ -z "$$(GEN1)" ] || [ -z "$$(GEN2)" ]; then \
-		printf "\n"; \
-		printf "$(RED)❌ Error: GEN1 and GEN2 parameters required$(NC)\n"; \
-		printf "$(YELLOW)Usage: make gen-diff GEN1=101 GEN2=102$(NC)\n\n"; \
-		exit 1; \
+ifndef EMBEDDED
+	@printf "\n"
+	@printf "$(CYAN)📊 gen-diff · compare two generations$(NC)\n"
+	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
+endif
+	@if [ -z "$(GEN1)" ] || [ -z "$(GEN2)" ]; then \
+		printf "$(YELLOW)  usage: make gen-diff GEN1=<n> GEN2=<m>$(NC)\n\n"; \
+	else \
+		nix-diff /nix/var/nix/profiles/system-$(GEN1)-link /nix/var/nix/profiles/system-$(GEN2)-link; \
 	fi
 ifndef EMBEDDED
-	@printf "\n"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(CYAN)             📊 Generation Diff (Gen $$(GEN1) vs $$(GEN2))      \n$(NC)"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
+	@if [ -n "$(GEN1)" ] && [ -n "$(GEN2)" ]; then printf "\n$(GREEN)  ✓ done$(NC)\n"; fi
 endif
-	
-	@printf "$(GREEN)1.$(NC) $(BLUE)Comparing Packages:$(NC)\n"
-	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
-	@nix-diff /nix/var/nix/profiles/system-$$(GEN1)-link /nix/var/nix/profiles/system-$$(GEN2)-link
-	
-ifndef EMBEDDED
-	@printf "\n$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(GREEN) ✅ Diff complete$(NC)\n"
-	@printf "$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
-endif
+	@if [ -n "$(GEN1)" ] && [ -n "$(GEN2)" ]; then \
+		printf "\n$(YELLOW)📋 Quick Actions:$(NC)\n"; \
+		printf "$(DIM)────────────────────────────────────────────────────────────────────────────────$(NC)\n"; \
+		printf "  • list all generations: $(BLUE)make gen-list$(NC)\n\n"; \
+	fi
 
 # ═══════════════════════════════════════════════════════════════
 # 📊 GEN-DIFF-CURRENT - Compare current generation with the previous one
