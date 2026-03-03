@@ -21,7 +21,10 @@ endif
 
 .PHONY: git-add git-commit git-add-commit git-push git-status git-diff git-log
 
-# ──── Stage: Add all modified/new files to the git index ────
+# ═══════════════════════════════════════════════════════════════
+# 💾 GIT-ADD - Stage all modified/new files for commit
+# ═══════════════════════════════════════════════════════════════
+# ──── Stage: Adds all modified/new files to the git index ────
 git-add: ## Stage all changes for git
 ifndef EMBEDDED
 	@printf "\n"
@@ -46,7 +49,10 @@ ifndef EMBEDDED
 	@printf "  • inspect what changed: $(BLUE)make git-diff$(NC)\n\n"
 endif
 
-# ──── Commit: Create a timestamped commit from staged changes ─
+# ═══════════════════════════════════════════════════════════════
+# 📝 GIT-COMMIT - Create a timestamped commit from staged changes
+# ═══════════════════════════════════════════════════════════════
+# ──── Commit: Stages all and creates commit with timestamp ───
 git-commit: ## Quick commit with timestamp
 ifndef EMBEDDED
 	@printf "\n"
@@ -74,7 +80,10 @@ ifndef EMBEDDED
 	@printf "  • full deploy cycle: $(BLUE)make sys-deploy$(NC)\n\n"
 endif
 
-# ──── Composite: Stage and commit in one step ────────────────
+# ═══════════════════════════════════════════════════════════════
+# 🔗 GIT-ADD-COMMIT - Stage and commit all changes in one step
+# ═══════════════════════════════════════════════════════════════
+# ──── Composite: Calls git-add then git-commit with EMBEDDED=1 ─
 git-add-commit: ## Stage and commit all changes together
 	@$(MAKE) -s git-add EMBEDDED=1
 	@$(MAKE) -s git-commit EMBEDDED=1
@@ -87,7 +96,10 @@ ifndef EMBEDDED
 	@printf "  • view recent history: $(BLUE)make git-log$(NC)\n\n"
 endif
 
-# ──── Push: Send unpushed commits to origin ──────────────────
+# ═══════════════════════════════════════════════════════════════
+# ☁️  GIT-PUSH - Sync local commits to remote repository
+# ═══════════════════════════════════════════════════════════════
+# ──── Push: Sends unpushed commits to origin via git push ────
 git-push: ## Push to remote
 ifndef EMBEDDED
 	@printf "\n"
@@ -114,6 +126,9 @@ ifndef EMBEDDED
 	@printf "  • apply system after push: $(BLUE)make sys-apply$(NC)\n\n"
 endif
 
+# ═══════════════════════════════════════════════════════════════
+# 📊 GIT-STATUS - Show repository state and recent commits
+# ═══════════════════════════════════════════════════════════════
 # ──── Status: Branch, remote, local changes, last 3 commits ─
 git-status: ## Show current repository state
 ifndef EMBEDDED
@@ -153,7 +168,10 @@ ifndef EMBEDDED
 	@printf "  • full history: $(BLUE)make git-log$(NC)\n\n"
 endif
 
-# ──── Diff: .nix files only — summary and full detail ────────
+# ═══════════════════════════════════════════════════════════════
+# 🔄 GIT-DIFF - Show uncommitted changes in .nix files
+# ═══════════════════════════════════════════════════════════════
+# ──── Diff: Filtered to *.nix files — summary and full detail ─
 git-diff: ## Show uncommitted changes to .nix configuration files
 ifndef EMBEDDED
 	@printf "\n"
@@ -180,7 +198,10 @@ ifndef EMBEDDED
 	@printf "  • build without switching: $(BLUE)make sys-build$(NC)\n\n"
 endif
 
-# ──── Log: Last 15 commits — hash, message, age ──────────────
+# ═══════════════════════════════════════════════════════════════
+# 📜 GIT-LOG - Show recent commit history
+# ═══════════════════════════════════════════════════════════════
+# ──── Log: Last 15 commits — short hash, message, age ────────
 git-log: ## Show recent commit history
 ifndef EMBEDDED
 	@printf "\n"

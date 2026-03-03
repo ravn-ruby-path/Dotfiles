@@ -26,7 +26,10 @@ endif
 
 .PHONY: sys-apply sys-apply-safe sys-apply-fast sys-test sys-build sys-dry-run sys-boot sys-check sys-debug sys-force sys-doctor sys-fix-git sys-hw-scan sys-deploy sys-copy-hw-config sys-apply-core
 
-# ──── Deploy: End-to-end workflow — the one you run 90% of the time ─
+# ═══════════════════════════════════════════════════════════════
+# 🚀 SYS-DEPLOY - End-to-end deployment workflow
+# ═══════════════════════════════════════════════════════════════
+# ──── Deploy: doctor → fix-git → add → commit → push → apply ─
 sys-deploy: ## Total sync (doctor + add + commit + push + apply)
 	@printf "\n"
 	@printf "$(CYAN)🚀 sys-deploy · doctor → git → apply$(NC)\n"
@@ -50,7 +53,10 @@ sys-deploy: ## Total sync (doctor + add + commit + push + apply)
 	@printf "  • check what was committed: $(BLUE)make git-log$(NC)\n"
 	@printf "  • list new generation: $(BLUE)make gen-list$(NC)\n\n"
 
-# ──── Standard Apply: Build and activate new system configuration ─
+# ═══════════════════════════════════════════════════════════════
+# 🔄 SYS-APPLY - Build and activate new system configuration
+# ═══════════════════════════════════════════════════════════════
+# ──── Standard Apply: Fixes git ownership then switches ──────
 sys-apply: ## Build and switch to new configuration
 ifndef EMBEDDED
 	@printf "\n"
@@ -60,7 +66,10 @@ endif
 	@$(MAKE) --no-print-directory sys-fix-git EMBEDDED=1
 	@$(MAKE) --no-print-directory sys-apply-core
 
-# ──── Apply Core: Internal target — callers own the display ──────────
+# ═══════════════════════════════════════════════════════════════
+# ⚙️  SYS-APPLY-CORE - Internal nixos-rebuild switch target
+# ═══════════════════════════════════════════════════════════════
+# ──── Apply Core: Internal target — callers own the display ──
 sys-apply-core:
 	@$(EXEC) sudo nixos-rebuild switch $(NIX_OPTS) --flake $(FLAKE_DIR)#$(HOSTNAME)
 	@printf "$(DIM)  hint: run hyde-shell reload to apply shell/theme changes$(NC)\n"
@@ -73,10 +82,16 @@ ifndef EMBEDDED
 	@printf "  • rollback if needed: $(BLUE)make gen-rollback$(NC)\n\n"
 endif
 
-# ──── Safe Apply: Validate before switching ──────────────────────────
+# ═══════════════════════════════════════════════════════════════
+# 🛡️  SYS-APPLY-SAFE - Validate configuration before switching
+# ═══════════════════════════════════════════════════════════════
+# ──── Safe Apply: Runs sys-check then sys-apply (safest) ─────
 sys-apply-safe: sys-check sys-apply ## Validate then switch (safest option)
 
-# ──── Fast Apply: Skip internal nixos-rebuild checks ─────────────────
+# ═══════════════════════════════════════════════════════════════
+# ⚡ SYS-APPLY-FAST - Quick rebuild skipping internal checks
+# ═══════════════════════════════════════════════════════════════
+# ──── Fast Apply: nixos-rebuild switch --fast (skip checks) ──
 sys-apply-fast: ## Quick rebuild (skip checks)
 ifndef EMBEDDED
 	@printf "\n"
@@ -94,7 +109,10 @@ ifndef EMBEDDED
 	@printf "  • run full checks next time: $(BLUE)make sys-apply-safe$(NC)\n\n"
 endif
 
-# ──── Test: Build and activate temporarily (reverts on reboot) ───────
+# ═══════════════════════════════════════════════════════════════
+# 🧪 SYS-TEST - Activate configuration temporarily until reboot
+# ═══════════════════════════════════════════════════════════════
+# ──── Test: nixos-rebuild test — reverts on next reboot ──────
 sys-test: ## Test configuration without permanent activation
 ifndef EMBEDDED
 	@printf "\n"
@@ -112,7 +130,10 @@ ifndef EMBEDDED
 	@printf "  • rollback generation: $(BLUE)make gen-rollback$(NC)\n\n"
 endif
 
-# ──── Build: Compile only, no activation ─────────────────────────────
+# ═══════════════════════════════════════════════════════════════
+# 🔨 SYS-BUILD - Compile configuration without activating
+# ═══════════════════════════════════════════════════════════════
+# ──── Build: Compiles derivation, no switch — tracks duration ─
 sys-build: ## Build configuration without switching
 ifndef EMBEDDED
 	@printf "\n"
@@ -151,7 +172,10 @@ ifndef EMBEDDED
 	@printf "  • test temporarily: $(BLUE)make sys-test$(NC)\n\n"
 endif
 
-# ──── Dry Run: Preview what nixos-rebuild would build ────────────────
+# ═══════════════════════════════════════════════════════════════
+# 🔍 SYS-DRY-RUN - Preview what nixos-rebuild would build
+# ═══════════════════════════════════════════════════════════════
+# ──── Dry Run: nixos-rebuild dry-run — no build, no switch ───
 sys-dry-run: ## Preview what would change without building
 ifndef EMBEDDED
 	@printf "\n"
@@ -169,7 +193,10 @@ ifndef EMBEDDED
 	@printf "  • validate first: $(BLUE)make sys-check$(NC)\n\n"
 endif
 
-# ──── Boot: Set configuration as default for next boot ───────────────
+# ═══════════════════════════════════════════════════════════════
+# 🥾 SYS-BOOT - Set configuration as default for next boot
+# ═══════════════════════════════════════════════════════════════
+# ──── Boot: nixos-rebuild boot — activates on next reboot ────
 sys-boot: ## Build and set as default for next boot (no immediate switch)
 ifndef EMBEDDED
 	@printf "\n"
@@ -187,7 +214,10 @@ ifndef EMBEDDED
 	@printf "  • check generations: $(BLUE)make gen-list$(NC)\n\n"
 endif
 
-# ──── Check: Validate flake syntax + config eval + statix ────────────
+# ═══════════════════════════════════════════════════════════════
+# 🔍 SYS-CHECK - Validate flake syntax, config eval, statix lint
+# ═══════════════════════════════════════════════════════════════
+# ──── Check: Three-step validation before applying changes ───
 sys-check: ## Validate configuration before applying
 ifndef EMBEDDED
 	@printf "\n"
@@ -233,7 +263,10 @@ ifndef EMBEDDED
 	@printf "  • fix lint warnings: $(BLUE)make fmt-lint$(NC)\n\n"
 endif
 
-# ──── Debug: Rebuild with --show-trace --verbose ─────────────────────
+# ═══════════════════════════════════════════════════════════════
+# 🐛 SYS-DEBUG - Rebuild with --show-trace and --verbose
+# ═══════════════════════════════════════════════════════════════
+# ──── Debug: Full verbosity for diagnosing build failures ────
 sys-debug: ## Rebuild with verbose output and trace
 ifndef EMBEDDED
 	@printf "\n"
@@ -243,7 +276,10 @@ endif
 	@printf "  launching verbose rebuild with full trace...\n\n"
 	@sudo nixos-rebuild switch $(NIX_OPTS) --flake $(FLAKE_DIR)#$(HOSTNAME) --show-trace --verbose
 
-# ──── Force: Emergency rebuild with cache disabled ───────────────────
+# ═══════════════════════════════════════════════════════════════
+# 🚨 SYS-FORCE - Emergency rebuild with eval cache disabled
+# ═══════════════════════════════════════════════════════════════
+# ──── Force: Disables cache, full trace — use as last resort ─
 sys-force: ## Emergency rebuild with maximum verbosity
 ifndef EMBEDDED
 	@printf "\n"
@@ -268,7 +304,10 @@ endif
 
 # === Maintenance and Utilities ===
 
-# ──── Doctor: Fix common permission issues in user directories ────────────
+# ═══════════════════════════════════════════════════════════════
+# 👨‍⚕️ SYS-DOCTOR - Fix common permission issues in user dirs
+# ═══════════════════════════════════════════════════════════════
+# ──── Doctor: Repairs ~/.config and ~/.local ownership ───────
 sys-doctor: ## Fix common permission issues
 ifndef EMBEDDED
 	@printf "\n"
@@ -314,7 +353,10 @@ ifndef EMBEDDED
 	@printf "  • apply system: $(BLUE)make sys-apply$(NC)\n\n"
 endif
 
-# ──── Fix Git: Repair .git object ownership in flake dir ────────────────
+# ═══════════════════════════════════════════════════════════════
+# 🔧 SYS-FIX-GIT - Repair .git object ownership in flake dir
+# ═══════════════════════════════════════════════════════════════
+# ──── Fix Git: Repairs FLAKE_DIR/.git ownership for git ops ──
 sys-fix-git: ## Fix git repo ownership issues in flake dir
 ifndef EMBEDDED
 	@printf "\n"
@@ -345,7 +387,10 @@ ifndef EMBEDDED
 	@printf "  • fix user dirs too: $(BLUE)make sys-doctor$(NC)\n\n"
 endif
 
-# ──── Copy HW Config: Backup hardware-configuration.nix to repo ──────────
+# ═══════════════════════════════════════════════════════════════
+# 📋 SYS-COPY-HW-CONFIG - Backup hardware-configuration.nix
+# ═══════════════════════════════════════════════════════════════
+# ──── Copy HW: Copies /etc/nixos configs to repo with chown ──
 sys-copy-hw-config: ## Copy hardware config to Dotfiles
 ifndef EMBEDDED
 	@printf "\n"
@@ -369,7 +414,10 @@ ifndef EMBEDDED
 	@printf "  • rescan hardware instead: $(BLUE)make sys-hw-scan$(NC)\n\n"
 endif
 
-# ──── HW Scan: Generate fresh hardware-configuration.nix ─────────────────
+# ═══════════════════════════════════════════════════════════════
+# 🔧 SYS-HW-SCAN - Generate fresh hardware-configuration.nix
+# ═══════════════════════════════════════════════════════════════
+# ──── HW Scan: nixos-generate-config — saves to hosts dir ────
 sys-hw-scan: ## Re-scan hardware configuration
 ifndef EMBEDDED
 	@printf "\n"
