@@ -252,10 +252,10 @@ Generations from the last 30 days will be kept.
 | `format.mk`    | ✅ completo |
 | `aliases.mk`   | ✅ completo |
 | `generations.mk` | ✅ completo |
-| `system.mk`    | ⏳ pendiente |
+| `system.mk`    | ✅ completo |
 | `updates.mk`   | ✅ completo |
 | `logs.mk`      | ✅ completo |
-| `git.mk`       | ⏳ pendiente |
+| `git.mk`       | ✅ completo |
 
 ---
 
