@@ -4,251 +4,199 @@
 # 📚 Documentation: docs/src/content/docs/makefile/06-git.mdx
 # 🎯 Purpose: Stage, commit, push and inspect git repository state
 # ──── Overview: 7 targets for the full git commit/push cycle ─
+#
+# 🧪 Dry Run (preview without executing):
+#    make git-add     DRY_RUN=1   · skip git add
+#    make git-commit  DRY_RUN=1   · skip git commit
+#    make git-push    DRY_RUN=1   · skip git push
+#    (git-status, git-diff, git-log are read-only)
+
+DRY_RUN ?= 0
+export DRY_RUN
+ifeq ($(DRY_RUN),1)
+  EXEC = echo "  ▶ [dry-run]"
+else
+  EXEC =
+endif
 
 .PHONY: git-add git-commit git-add-commit git-push git-status git-diff git-log
 
-# === Git Operations ===
-
-# ═══════════════════════════════════════════════════════════════
-# 💾 GIT ADD - Stage all changes for commit
-# ═══════════════════════════════════════════════════════════════
-# ──── Staging: Adds all modified/new files to the git index ──
+# ──── Stage: Add all modified/new files to the git index ────
 git-add: ## Stage all changes for git
 ifndef EMBEDDED
 	@printf "\n"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(CYAN)             💾 Git Stage Changes                       \n$(NC)"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
-	
-	@printf "$(GREEN)1.$(NC) $(BLUE)Staging Status:$(NC)\n"
+	@printf "$(CYAN)💾 git-add · staging all changes$(NC)\n"
 	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
 endif
 	@CHANGED=$$(git status --short | wc -l); \
 	if [ $$CHANGED -gt 0 ]; then \
-		printf "$(BLUE)Adding all changes to staging area...$(NC)\n"; \
-		git add .; \
-		printf "$(GREEN)✓ Staged $$CHANGED file(s)$(NC)\n"; \
-		printf "\n$(BLUE)Changes staged:$(NC)\n"; \
+		printf "  adding $$CHANGED file(s) to staging area...\n"; \
+		$(EXEC) git add .; \
+		printf "$(GREEN)  ✓ staged $$CHANGED file(s)$(NC)\n\n"; \
 		git status --short | sed 's/^/  /'; \
 	else \
-		printf "$(YELLOW)⚠️  No changes to stage$(NC)\n"; \
-		printf "$(BLUE)Working tree is clean.$(NC)\n"; \
+		printf "$(YELLOW)  ⚠  nothing to stage — working tree is clean$(NC)\n"; \
 	fi
-	
 ifndef EMBEDDED
-	@printf "\n$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(GREEN) ✅ Staging complete$(NC)\n"
-	@printf "$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
+	@printf "\n$(GREEN)  ✓ done$(NC)\n"
+	@printf "\n$(YELLOW)📋 Quick Actions:$(NC)\n"
+	@printf "$(DIM)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
+	@printf "  • commit staged changes: $(BLUE)make git-commit$(NC)\n"
+	@printf "  • stage and commit in one step: $(BLUE)make git-add-commit$(NC)\n"
+	@printf "  • inspect what changed: $(BLUE)make git-diff$(NC)\n\n"
 endif
 
-# ═══════════════════════════════════════════════════════════════
-# 📝 GIT COMMIT - Create a timestamped commit from staged changes
-# ═══════════════════════════════════════════════════════════════
-# ──── Quick Commit: Stages all and commits with timestamp ────
+# ──── Commit: Create a timestamped commit from staged changes ─
 git-commit: ## Quick commit with timestamp
 ifndef EMBEDDED
 	@printf "\n"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(CYAN)             📝 Git Quick Commit                        \n$(NC)"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
-	
-	@printf "$(GREEN)1.$(NC) $(BLUE)Committing:$(NC)\n"
+	@printf "$(CYAN)📝 git-commit · timestamped snapshot$(NC)\n"
 	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
 endif
 	@if [ -n "$$(git status --porcelain)" ]; then \
-		printf "$(BLUE)Staging changes...$(NC)\n"; \
-		git add .; \
+		printf "  staging changes...\n"; \
+		$(EXEC) git add .; \
 		COMMIT_MSG="config: update $$(date '+%Y-%m-%d %H:%M:%S')"; \
-		printf "$(BLUE)Creating commit:$(NC) $(GREEN)$$COMMIT_MSG$(NC)\n\n"; \
-		git commit -m "$$COMMIT_MSG" || exit 1; \
+		printf "  commit: $(GREEN)$$COMMIT_MSG$(NC)\n\n"; \
+		$(EXEC) git commit -m "$$COMMIT_MSG" || exit 1; \
 		COMMIT_HASH=$$(git rev-parse --short HEAD); \
 		BRANCH=$$(git branch --show-current); \
-		printf "\n$(GREEN)✓ Commit created successfully$(NC)\n"; \
-		printf "$(BLUE)Hash:$(NC) $(GREEN)$$COMMIT_HASH$(NC)\n"; \
-		printf "$(BLUE)Branch:$(NC) $(GREEN)$$BRANCH$(NC)\n"; \
+		printf "$(GREEN)  ✓ $(NC)$(DIM)$$COMMIT_HASH$(NC)  $$BRANCH\n"; \
 	else \
-		printf "$(YELLOW)⚠️  No changes to commit$(NC)\n"; \
-		printf "$(BLUE)Working tree is clean. Proceeding...$(NC)\n"; \
+		printf "$(YELLOW)  ⚠  nothing to commit — working tree is clean$(NC)\n"; \
 	fi
-	
 ifndef EMBEDDED
-	@printf "\n$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(GREEN) ✅ Commit operation finished$(NC)\n"
-	@printf "$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
+	@printf "\n$(GREEN)  ✓ done$(NC)\n"
+	@printf "\n$(YELLOW)📋 Quick Actions:$(NC)\n"
+	@printf "$(DIM)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
+	@printf "  • push to remote: $(BLUE)make git-push$(NC)\n"
+	@printf "  • view recent history: $(BLUE)make git-log$(NC)\n"
+	@printf "  • full deploy cycle: $(BLUE)make sys-deploy$(NC)\n\n"
 endif
 
 # ──── Composite: Stage and commit in one step ────────────────
 git-add-commit: ## Stage and commit all changes together
-	@$(MAKE) -s git-add
-	@$(MAKE) -s git-commit
+	@$(MAKE) -s git-add EMBEDDED=1
+	@$(MAKE) -s git-commit EMBEDDED=1
+ifndef EMBEDDED
+	@printf "\n$(GREEN)  ✓ done$(NC)\n"
+	@printf "\n$(YELLOW)📋 Quick Actions:$(NC)\n"
+	@printf "$(DIM)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
+	@printf "  • push to remote: $(BLUE)make git-push$(NC)\n"
+	@printf "  • full deploy cycle: $(BLUE)make sys-deploy$(NC)\n"
+	@printf "  • view recent history: $(BLUE)make git-log$(NC)\n\n"
+endif
 
-# ═══════════════════════════════════════════════════════════════
-# ☁️  GIT PUSH - Sync local commits to remote repository
-# ═══════════════════════════════════════════════════════════════
-# ──── Push: Sends unpushed commits to origin via git push ────
-git-push: ## Push to remote using GitHub CLI
+# ──── Push: Send unpushed commits to origin ──────────────────
+git-push: ## Push to remote
 ifndef EMBEDDED
 	@printf "\n"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(CYAN)             ☁️  Git Push to Remote                      \n$(NC)"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
-	
-	@printf "$(GREEN)1.$(NC) $(BLUE)Syncing with Remote:$(NC)\n"
+	@printf "$(CYAN)☁️  git-push · sync to remote$(NC)\n"
 	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
 endif
 	@BRANCH=$$(git branch --show-current); \
 	REMOTE=$$(git remote get-url origin 2>/dev/null | sed -E 's|.*github.com[:/]([^/]+/[^/]+)(\.git)?$$|\1|' | sed 's|\.git$$||'); \
-	printf "$(BLUE)Branch:$(NC) $(GREEN)$$BRANCH$(NC)\n"; \
-	printf "$(BLUE)Remote:$(NC) $(GREEN)$$REMOTE$(NC)\n\n"; \
+	printf "  $(DIM)branch:$(NC) $$BRANCH  $(DIM)remote:$(NC) $$REMOTE\n\n"; \
 	UNPUSHED=$$(git log origin/$$BRANCH..HEAD --oneline 2>/dev/null | wc -l); \
 	if [ $$UNPUSHED -gt 0 ]; then \
-		printf "$(BLUE)Pushing $$UNPUSHED commit(s)...$(NC)\n"; \
-		git push || exit 1; \
-		printf "\n$(GREEN)✓ Successfully pushed to remote$(NC)\n"; \
+		printf "  pushing $$UNPUSHED commit(s)...\n"; \
+		$(EXEC) git push || exit 1; \
+		printf "$(GREEN)  ✓ pushed to remote$(NC)\n"; \
 	else \
-		printf "$(YELLOW)⚠️  Everything up-to-date (no changes to push)$(NC)\n"; \
+		printf "$(YELLOW)  ⚠  everything up-to-date$(NC)\n"; \
 	fi
-	
 ifndef EMBEDDED
-	@printf "\n$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(GREEN) ✅ Push complete$(NC)\n"
-	@printf "$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
+	@printf "\n$(GREEN)  ✓ done$(NC)\n"
+	@printf "\n$(YELLOW)📋 Quick Actions:$(NC)\n"
+	@printf "$(DIM)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
+	@printf "  • verify remote history: $(BLUE)make git-log$(NC)\n"
+	@printf "  • check repo state: $(BLUE)make git-status$(NC)\n"
+	@printf "  • apply system after push: $(BLUE)make sys-apply$(NC)\n\n"
 endif
 
-# ═══════════════════════════════════════════════════════════════
-# 📊 GIT STATUS - Show repository state and recent commits
-# ═══════════════════════════════════════════════════════════════
 # ──── Status: Branch, remote, local changes, last 3 commits ─
-git-status: ## Show git status with GitHub CLI
+git-status: ## Show current repository state
 ifndef EMBEDDED
 	@printf "\n"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(CYAN)             📊 Git Repository Status                   \n$(NC)"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
-	
-	@printf "$(GREEN)1.$(NC) $(BLUE)Configuration:$(NC)\n"
+	@printf "$(CYAN)📊 git-status · repository overview$(NC)\n"
 	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
 endif
-	@printf "  $(BLUE)Host:$(NC)  $(HOSTNAME)\n"
-	@printf "  $(BLUE)Flake:$(NC) $(PWD)\n"
-	@printf "  $(BLUE)NixOS:$(NC) $$(nixos-version 2>/dev/null | cut -d' ' -f1 || echo 'N/A')\n"
-	
-	@printf "\n$(GREEN)2.$(NC) $(BLUE)Git Status:$(NC)\n"
-	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
+	@printf "  $(DIM)host:$(NC)  $(HOSTNAME)  $(DIM)flake:$(NC) $(PWD)\n"
+	@printf "  $(DIM)nixos:$(NC) $$(nixos-version 2>/dev/null | cut -d' ' -f1 || echo 'N/A')\n\n"
 	@if git rev-parse --git-dir > /dev/null 2>&1; then \
-		printf "  $(BLUE)Repository:$(NC) "; \
 		REMOTE_URL=$$(git remote get-url origin 2>/dev/null); \
-		if [ -n "$$REMOTE_URL" ]; then \
-			REPO_NAME=$$(echo "$$REMOTE_URL" | sed -E 's|.*github.com[:/]([^/]+/[^/]+)(\.git)?$$|\1|' | sed 's|\.git$$||'); \
-			if [ -n "$$REPO_NAME" ]; then \
-				printf "$$REPO_NAME\n"; \
-			else \
-				printf "$$REMOTE_URL\n"; \
-			fi; \
-		else \
-			printf "$(YELLOW)No remote configured$(NC)\n"; \
-		fi; \
-		printf "  $(BLUE)Branch:$(NC)     $$(git branch --show-current)\n"; \
-		printf "  $(BLUE)Status:$(NC)     "; \
+		REPO_NAME=$$(echo "$$REMOTE_URL" | sed -E 's|.*github.com[:/]([^/]+/[^/]+)(\.git)?$$|\1|' | sed 's|\.git$$||'); \
+		BRANCH=$$(git branch --show-current); \
+		printf "  $(DIM)repo:$(NC)   $$REPO_NAME\n"; \
+		printf "  $(DIM)branch:$(NC) $$BRANCH  "; \
 		if git diff-index --quiet HEAD -- 2>/dev/null; then \
-			printf "$(GREEN)Clean$(NC)\n"; \
+			printf "$(GREEN)clean$(NC)\n"; \
 		else \
-			printf "$(YELLOW)Uncommitted changes$(NC)\n"; \
+			printf "$(YELLOW)uncommitted changes$(NC)\n"; \
 		fi; \
-		printf "\n$(GREEN)3.$(NC) $(BLUE)Local Changes:$(NC)\n"; \
-		printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"; \
-		git status --short | sed 's/^/  /'; \
-		printf "\n$(GREEN)4.$(NC) $(BLUE)Recent Commits:$(NC)\n"; \
-		printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"; \
-		git log --max-count=3 --pretty=format:"  %C(green)%h%C(reset)  %<(50,trunc)%s  %C(blue)%<(15)%ar%C(reset)" 2>/dev/null; \
+		printf "\n"; \
+		CHANGED=$$(git status --short | wc -l); \
+		if [ $$CHANGED -gt 0 ]; then \
+			git status --short | sed 's/^/  /'; \
+			printf "\n"; \
+		fi; \
+		git log --max-count=3 --pretty=format:"  %C(green)%h%C(reset)  %<(50,trunc)%s  %C(dim)%<(15)%ar%C(reset)" 2>/dev/null; \
 	else \
-		printf "$(YELLOW)Not a git repository$(NC)\n"; \
+		printf "$(YELLOW)  ⚠  not a git repository$(NC)\n"; \
 	fi
-	
 ifndef EMBEDDED
-	@printf "\n\n$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(GREEN) ✅ Status report complete$(NC)\n"
-	@printf "$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
+	@printf "\n\n$(GREEN)  ✓ done$(NC)\n"
+	@printf "\n$(YELLOW)📋 Quick Actions:$(NC)\n"
+	@printf "$(DIM)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
+	@printf "  • stage and commit: $(BLUE)make git-add-commit$(NC)\n"
+	@printf "  • inspect .nix changes: $(BLUE)make git-diff$(NC)\n"
+	@printf "  • full history: $(BLUE)make git-log$(NC)\n\n"
 endif
 
-# ═══════════════════════════════════════════════════════════════
-# 🔄 GIT DIFF - Show uncommitted changes in .nix files
-# ═══════════════════════════════════════════════════════════════
-# ──── Diff: Filtered to *.nix files with summary and detail ─
+# ──── Diff: .nix files only — summary and full detail ────────
 git-diff: ## Show uncommitted changes to .nix configuration files
 ifndef EMBEDDED
 	@printf "\n"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(CYAN)             🔄 Git Configuration Changes               \n$(NC)"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
-	
-	@printf "$(GREEN)1.$(NC) $(BLUE)Diff Analysis:$(NC)\n"
+	@printf "$(CYAN)🔄 git-diff · .nix configuration changes$(NC)\n"
 	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
 endif
 	@if git diff --quiet -- '*.nix' 2>/dev/null; then \
-		printf "$(GREEN)✓ No uncommitted changes to .nix files$(NC)\n"; \
-		printf "$(BLUE)All configuration files are clean.$(NC)\n"; \
+		printf "$(GREEN)  ✓ no uncommitted changes in .nix files$(NC)\n"; \
 	else \
-		printf "$(BLUE)Uncommitted changes in .nix files:$(NC)\n\n"; \
 		CHANGED_FILES=$$(git diff --name-only -- '*.nix' 2>/dev/null | wc -l); \
 		ADDED_LINES=$$(git diff --numstat -- '*.nix' 2>/dev/null | awk '{sum+=$$1} END {print sum+0}'); \
 		DELETED_LINES=$$(git diff --numstat -- '*.nix' 2>/dev/null | awk '{sum+=$$2} END {print sum+0}'); \
-		printf "$(PURPLE)Summary:$(NC)\n"; \
-		printf "  • $(BLUE)Files changed:$(NC) $(GREEN)$$CHANGED_FILES$(NC)\n"; \
-		if [ -n "$$ADDED_LINES" ] && [ "$$ADDED_LINES" != "0" ]; then \
-			printf "  • $(BLUE)Lines added:$(NC) $(GREEN)+$$ADDED_LINES$(NC)\n"; \
-		fi; \
-		if [ -n "$$DELETED_LINES" ] && [ "$$DELETED_LINES" != "0" ]; then \
-			printf "  • $(BLUE)Lines deleted:$(NC) $(RED)-$$DELETED_LINES$(NC)\n"; \
-		fi; \
-		printf "\n$(GREEN)2.$(NC) $(BLUE)File Changes:$(NC)\n"; \
-		printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"; \
+		printf "  $(DIM)files:$(NC) $$CHANGED_FILES  $(GREEN)+$$ADDED_LINES$(NC)  $(RED)-$$DELETED_LINES$(NC)\n\n"; \
 		git diff --stat --color=always -- '*.nix' 2>/dev/null || git diff --stat -- '*.nix'; \
-		printf "\n$(GREEN)3.$(NC) $(BLUE)Detailed Diff:$(NC)\n"; \
-		printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"; \
+		printf "\n"; \
 		git diff --color=always -- '*.nix' 2>/dev/null || git diff -- '*.nix'; \
 	fi
-	
 ifndef EMBEDDED
-	@printf "\n$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(GREEN) ✅ Diff complete$(NC)\n"
-	@printf "$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
+	@printf "\n$(GREEN)  ✓ done$(NC)\n"
+	@printf "\n$(YELLOW)📋 Quick Actions:$(NC)\n"
+	@printf "$(DIM)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
+	@printf "  • stage and commit: $(BLUE)make git-add-commit$(NC)\n"
+	@printf "  • validate config: $(BLUE)make sys-check$(NC)\n"
+	@printf "  • build without switching: $(BLUE)make sys-build$(NC)\n\n"
 endif
 
-# ═══════════════════════════════════════════════════════════════
-# 📜 GIT LOG - Show recent commit history
-# ═══════════════════════════════════════════════════════════════
-# ──── Log: Last 15 commits with short hash, message, age ────
-git-log: ## Show recent changes from git log
+# ──── Log: Last 15 commits — hash, message, age ──────────────
+git-log: ## Show recent commit history
 ifndef EMBEDDED
 	@printf "\n"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(CYAN)             📜 Recent Git History                      \n$(NC)"
-	@printf "$(CYAN)═════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
-	
-	@printf "$(GREEN)1.$(NC) $(BLUE)Recent Commits:$(NC)\n"
+	@printf "$(CYAN)📜 git-log · recent history$(NC)\n"
 	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
 endif
 	@if git rev-parse --git-dir > /dev/null 2>&1; then \
-		git log --max-count=15 --pretty=format:"  %C(green)%h%C(reset)  %<(58,trunc)%s  %C(blue)%<(15)%ar%C(reset)" 2>/dev/null; \
+		git log --max-count=15 --pretty=format:"  %C(green)%h%C(reset)  %<(58,trunc)%s  %C(dim)%<(15)%ar%C(reset)" 2>/dev/null; \
 	else \
-		printf "$(YELLOW)Not a git repository$(NC)\n"; \
+		printf "$(YELLOW)  ⚠  not a git repository$(NC)\n"; \
 	fi
-	
 ifndef EMBEDDED
-	@printf "\n\n$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "$(GREEN) ✅ Log complete$(NC)\n"
-	@printf "$(CYAN)════════════════════════════════════════════════════════════════════════════════\n$(NC)"
-	@printf "\n"
+	@printf "\n\n$(GREEN)  ✓ done$(NC)\n"
+	@printf "\n$(YELLOW)📋 Quick Actions:$(NC)\n"
+	@printf "$(DIM)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
+	@printf "  • check repo state: $(BLUE)make git-status$(NC)\n"
+	@printf "  • inspect .nix changes: $(BLUE)make git-diff$(NC)\n"
+	@printf "  • full deploy cycle: $(BLUE)make sys-deploy$(NC)\n\n"
 endif
