@@ -213,11 +213,4 @@ endif
 	else \
 		printf "$(YELLOW)  ⚠  not a git repository$(NC)\n"; \
 	fi
-ifndef EMBEDDED
-	@printf "\n\n$(GREEN)  ✓ done$(NC)\n"
-	@printf "\n$(YELLOW)📋 Quick Actions:$(NC)\n"
-	@printf "$(DIM)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
-	@printf "  • check repo state: $(BLUE)make git-status$(NC)\n"
-	@printf "  • inspect .nix changes: $(BLUE)make git-diff$(NC)\n"
-	@printf "  • full deploy cycle: $(BLUE)make sys-deploy$(NC)\n\n"
-endif
+	@printf "\n"
