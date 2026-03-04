@@ -71,7 +71,53 @@ endif
 	@printf "  • format files: $(BLUE)make fmt-check$(NC)\n\n"
 
 # ═══════════════════════════════════════════════════════════════
-# 📂 FMT-TREE - Show project structure tree
+# 📋 FMT-REPORT - Generate AI-ready quality report in logs/
+# ═══════════════════════════════════════════════════════════════
+# ──── Report: alejandra --check + statix → logs/nix-report-*.log ─
+fmt-report: ## Generate AI-ready lint/format report in logs/
+	@printf "\n"
+	@printf "$(CYAN)📋 fmt-report · generating quality report$(NC)\n"
+	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
+	@mkdir -p logs
+	@LOG_FILE="logs/nix-report-$$(date '+%Y%m%d-%H%M%S').log"; \
+	ALEJ_OUT=$$(alejandra --check . 2>&1 || true); \
+	STATIX_OUT=$$(statix check . 2>&1 || true); \
+	{ \
+	  echo "═══════════════════════════════════════════════════════════════"; \
+	  echo "  NIX QUALITY REPORT — $$(date '+%Y-%m-%d %H:%M:%S')"; \
+	  echo "  Repo: $$(git remote get-url origin 2>/dev/null || echo local)"; \
+	  echo "  Branch: $$(git branch --show-current 2>/dev/null || echo unknown)"; \
+	  echo "═══════════════════════════════════════════════════════════════"; \
+	  echo ""; \
+	  echo "──── Alejandra (format check) ──────────────────────────────────"; \
+	  echo "$$ALEJ_OUT"; \
+	  echo ""; \
+	  echo "──── Statix (lint warnings) ────────────────────────────────────"; \
+	  echo "$$STATIX_OUT"; \
+	  echo ""; \
+	  echo "═══════════════════════════════════════════════════════════════"; \
+	  echo "  AI PROMPT"; \
+	  echo "═══════════════════════════════════════════════════════════════"; \
+	  echo ""; \
+	  echo "I have a NixOS flake-based dotfiles repo. The quality report"; \
+	  echo "above shows formatting and lint issues. Please:"; \
+	  echo ""; \
+	  echo "1. Explain what each warning means in the context of Nix"; \
+	  echo "2. Show the exact fix for each issue with a code snippet"; \
+	  echo "3. Confirm if any are intentional false positives (e.g. INI"; \
+	  echo "   attrsets, split systemd keys) to add to statix.toml instead"; \
+	} > "$$LOG_FILE"; \
+	if [ -z "$$ALEJ_OUT" ] && [ -z "$$STATIX_OUT" ]; then \
+	  printf "$(GREEN)  ✓ no issues found$(NC)\n"; \
+	else \
+	  printf "$(YELLOW)  ⚠  issues found — report saved:$(NC)\n"; \
+	  printf "  $(DIM)$$LOG_FILE$(NC)\n"; \
+	fi
+	@printf "\n$(GREEN)  ✓ done$(NC)\n"
+	@printf "\n$(YELLOW)📋 Quick Actions:$(NC)\n"
+	@printf "$(DIM)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
+	@printf "  • auto-fix formatting: $(BLUE)make fmt-check$(NC)\n"
+	@printf "  • view lint warnings: $(BLUE)make fmt-lint$(NC)\n\n"
 # ═══════════════════════════════════════════════════════════════
 # ──── Excludes result*, node_modules, .git ────────────────────
 fmt-tree: ## Show project structure tree

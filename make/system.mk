@@ -34,24 +34,34 @@ sys-deploy: ## Total sync (doctor + add + commit + push + apply)
 	@printf "\n"
 	@printf "$(CYAN)🚀 sys-deploy · doctor → git → apply$(NC)\n"
 	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
-	@printf "$(DIM)  ▶ fixing permissions...$(NC)\n"
+	@printf "\n$(DIM)  ▶ fixing permissions...$(NC)\n"
 	@$(MAKE) --no-print-directory sys-doctor EMBEDDED=1
-	@printf "$(DIM)  ▶ fixing git ownership...$(NC)\n"
+	@printf "\n$(DIM)  ▶ fixing git ownership...$(NC)\n"
 	@$(MAKE) --no-print-directory sys-fix-git EMBEDDED=1
-	@printf "$(DIM)  ▶ staging changes...$(NC)\n"
+	@printf "\n$(DIM)  ▶ checking format...$(NC)\n"
+	@if command -v alejandra >/dev/null 2>&1; then \
+		if ! alejandra --check . >/dev/null 2>&1; then \
+			printf "$(RED)  ✗ unformatted files found — run: make fmt-check$(NC)\n"; \
+			exit 1; \
+		fi; \
+		printf "$(GREEN)    ✓ format ok$(NC)\n"; \
+	fi
+	@printf "\n$(DIM)  ▶ staging changes...$(NC)\n"
 	@$(MAKE) --no-print-directory git-add EMBEDDED=1
-	@printf "$(DIM)  ▶ committing...$(NC)\n"
+	@printf "\n$(DIM)  ▶ committing...$(NC)\n"
 	@$(MAKE) --no-print-directory git-commit EMBEDDED=1
-	@printf "$(DIM)  ▶ pushing to remote...$(NC)\n"
+	@printf "\n$(DIM)  ▶ pushing to remote...$(NC)\n"
 	@$(MAKE) --no-print-directory git-push EMBEDDED=1
-	@printf "$(DIM)  ▶ rebuilding system...$(NC)\n"
+	@printf "\n$(DIM)  ▶ rebuilding system...$(NC)\n"
 	@$(MAKE) --no-print-directory sys-apply-core EMBEDDED=1
 	@printf "\n$(GREEN)  ✓ done$(NC)\n"
 	@printf "\n$(YELLOW)📋 Quick Actions:$(NC)\n"
 	@printf "$(DIM)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
 	@printf "  • verify no errors after deploy: $(BLUE)make log-err$(NC)\n"
 	@printf "  • check what was committed: $(BLUE)make git-log$(NC)\n"
-	@printf "  • list new generation: $(BLUE)make gen-list$(NC)\n\n"
+	@printf "  • list new generation: $(BLUE)make gen-list$(NC)\n"
+	@printf "\n"
+	@printf "$(CYAN)  hint: run hyde-shell reload to apply shell/theme changes$(NC)\n\n"
 
 # ═══════════════════════════════════════════════════════════════
 # 🔄 SYS-APPLY - Build and activate new system configuration
@@ -72,14 +82,14 @@ endif
 # ──── Apply Core: Internal target — callers own the display ──
 sys-apply-core:
 	@$(EXEC) sudo nixos-rebuild switch $(NIX_OPTS) --flake $(FLAKE_DIR)#$(HOSTNAME)
-	@printf "$(DIM)  hint: run hyde-shell reload to apply shell/theme changes$(NC)\n"
 ifndef EMBEDDED
 	@printf "\n$(GREEN)  ✓ done$(NC)\n"
 	@printf "\n$(YELLOW)📋 Quick Actions:$(NC)\n"
 	@printf "$(DIM)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
 	@printf "  • verify no errors: $(BLUE)make log-err$(NC)\n"
 	@printf "  • check new generation: $(BLUE)make gen-list$(NC)\n"
-	@printf "  • rollback if needed: $(BLUE)make gen-rollback$(NC)\n\n"
+	@printf "  • rollback if needed: $(BLUE)make gen-rollback$(NC)\n"
+	@printf "  $(DIM)hint: run hyde-shell reload to apply shell/theme changes$(NC)\n\n"
 endif
 
 # ═══════════════════════════════════════════════════════════════

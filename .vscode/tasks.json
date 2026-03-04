@@ -1,0 +1,42 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            // ──── statix: lint all .nix files → Problems panel ──────────
+            "label": "statix: check",
+            "type": "shell",
+            "command": "statix check . --format errfmt 2>&1 || true",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": {
+                "owner": "statix",
+                "fileLocation": [
+                    "relative",
+                    "${workspaceFolder}"
+                ],
+                "pattern": {
+                    "regexp": "^(.+)>(\\d+):(\\d+):[WE]:(\\d+):(.+)$",
+                    "file": 1,
+                    "line": 2,
+                    "column": 3,
+                    "code": 4,
+                    "message": 5,
+                    "severity": 0
+                },
+                "severity": "warning"
+            },
+            "group": "build",
+            "presentation": {
+                "reveal": "silent",
+                "panel": "shared",
+                "showReuseMessage": false,
+                "clear": true
+            },
+            "runOptions": {
+                "instanceLimit": 1,
+                "runOn": "folderOpen"
+            }
+        }
+    ]
+}

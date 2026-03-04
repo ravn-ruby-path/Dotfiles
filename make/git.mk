@@ -38,7 +38,7 @@ endif
 		printf "$(GREEN)  ✓ staged $$CHANGED file(s)$(NC)\n\n"; \
 		git status --short | sed 's/^/  /'; \
 	else \
-		printf "$(YELLOW)  ⚠  nothing to stage — working tree is clean$(NC)\n"; \
+		printf "$(GREEN)  ✓  nothing to stage — working tree is clean$(NC)\n"; \
 	fi
 ifndef EMBEDDED
 	@printf "\n$(GREEN)  ✓ done$(NC)\n"
@@ -69,7 +69,7 @@ endif
 		BRANCH=$$(git branch --show-current); \
 		printf "$(GREEN)  ✓ $(NC)$(DIM)$$COMMIT_HASH$(NC)  $$BRANCH\n"; \
 	else \
-		printf "$(YELLOW)  ⚠  nothing to commit — working tree is clean$(NC)\n"; \
+		printf "$(GREEN)  ✓  nothing to commit — working tree is clean$(NC)\n"; \
 	fi
 ifndef EMBEDDED
 	@printf "\n$(GREEN)  ✓ done$(NC)\n"
@@ -108,14 +108,14 @@ ifndef EMBEDDED
 endif
 	@BRANCH=$$(git branch --show-current); \
 	REMOTE=$$(git remote get-url origin 2>/dev/null | sed -E 's|.*github.com[:/]([^/]+/[^/]+)(\.git)?$$|\1|' | sed 's|\.git$$||'); \
-	printf "  $(DIM)branch:$(NC) $$BRANCH  $(DIM)remote:$(NC) $$REMOTE\n\n"; \
 	UNPUSHED=$$(git log origin/$$BRANCH..HEAD --oneline 2>/dev/null | wc -l); \
+	printf "  $(DIM)branch:$(NC) $$BRANCH  $(DIM)remote:$(NC) $$REMOTE\n"; \
 	if [ $$UNPUSHED -gt 0 ]; then \
-		printf "  pushing $$UNPUSHED commit(s)...\n"; \
+		printf "\n  pushing $$UNPUSHED commit(s)...\n"; \
 		$(EXEC) git push || exit 1; \
 		printf "$(GREEN)  ✓ pushed to remote$(NC)\n"; \
 	else \
-		printf "$(YELLOW)  ⚠  everything up-to-date$(NC)\n"; \
+		printf "$(GREEN)  ✓  everything up-to-date$(NC)\n"; \
 	fi
 ifndef EMBEDDED
 	@printf "\n$(GREEN)  ✓ done$(NC)\n"
@@ -142,25 +142,49 @@ endif
 		REMOTE_URL=$$(git remote get-url origin 2>/dev/null); \
 		REPO_NAME=$$(echo "$$REMOTE_URL" | sed -E 's|.*github.com[:/]([^/]+/[^/]+)(\.git)?$$|\1|' | sed 's|\.git$$||'); \
 		BRANCH=$$(git branch --show-current); \
+		AHEAD=$$(git rev-list --count @{u}..HEAD 2>/dev/null || echo 0); \
+		BEHIND=$$(git rev-list --count HEAD..@{u} 2>/dev/null || echo 0); \
+		STAGED=$$(git diff --cached --name-only 2>/dev/null | wc -l | tr -d ' '); \
+		UNSTAGED=$$(git diff --name-only 2>/dev/null | wc -l | tr -d ' '); \
+		UNTRACKED=$$(git ls-files --others --exclude-standard 2>/dev/null | wc -l | tr -d ' '); \
 		printf "  $(DIM)repo:$(NC)   $$REPO_NAME\n"; \
-		printf "  $(DIM)branch:$(NC) $$BRANCH  "; \
-		if git diff-index --quiet HEAD -- 2>/dev/null; then \
-			printf "$(GREEN)clean$(NC)\n"; \
-		else \
-			printf "$(YELLOW)uncommitted changes$(NC)\n"; \
+		printf "  $(DIM)branch:$(NC) $$BRANCH"; \
+		if [ "$$AHEAD" -gt 0 ] && [ "$$BEHIND" -gt 0 ]; then \
+			printf "  $(YELLOW)⇕ ↑$$AHEAD ↓$$BEHIND$(NC)"; \
+		elif [ "$$AHEAD" -gt 0 ]; then \
+			printf "  $(YELLOW)↑ $$AHEAD ahead$(NC)"; \
+		elif [ "$$BEHIND" -gt 0 ]; then \
+			printf "  $(RED)↓ $$BEHIND behind$(NC)"; \
 		fi; \
-		printf "\n"; \
-		CHANGED=$$(git status --short | wc -l); \
-		if [ $$CHANGED -gt 0 ]; then \
-			git status --short | sed 's/^/  /'; \
+		printf "\n\n"; \
+		if [ "$$STAGED" -eq 0 ] && [ "$$UNSTAGED" -eq 0 ] && [ "$$UNTRACKED" -eq 0 ]; then \
+			printf "  $(GREEN)✓ nothing to commit — working tree clean$(NC)\n"; \
 			printf "\n"; \
+		else \
+			if [ "$$STAGED" -gt 0 ]; then \
+				printf "  $(GREEN)staged:$(NC)    $$STAGED file(s)\n"; \
+				git diff --cached --name-only 2>/dev/null | while IFS= read -r f; do printf "    $(GREEN)+$(NC) $$f\n"; done; \
+				printf "\n"; \
+			fi; \
+			if [ "$$UNSTAGED" -gt 0 ]; then \
+				printf "  $(YELLOW)modified:$(NC)  $$UNSTAGED file(s)\n"; \
+				git diff --name-only 2>/dev/null | while IFS= read -r f; do printf "    $(YELLOW)~$(NC) $$f\n"; done; \
+				printf "\n"; \
+			fi; \
+			if [ "$$UNTRACKED" -gt 0 ]; then \
+				printf "  $(DIM)untracked:$(NC) $$UNTRACKED file(s)\n"; \
+				git ls-files --others --exclude-standard 2>/dev/null | while IFS= read -r f; do printf "    $(DIM)?$(NC) $$f\n"; done; \
+				printf "\n"; \
+			fi; \
 		fi; \
-		git log --max-count=3 --pretty=format:"  %C(green)%h%C(reset)  %<(50,trunc)%s  %C(dim)%<(15)%ar%C(reset)" 2>/dev/null; \
+		printf "  $(DIM)recent commits:$(NC)\n"; \
+		git log --max-count=5 --pretty=format:"  %C(green)%h%C(reset)  %<(50,trunc)%s  %C(dim)%<(15)%ar%C(reset)" 2>/dev/null; \
+		printf "\n"; \
 	else \
 		printf "$(YELLOW)  ⚠  not a git repository$(NC)\n"; \
 	fi
 ifndef EMBEDDED
-	@printf "\n\n$(GREEN)  ✓ done$(NC)\n"
+	@printf "\n$(GREEN)  ✓ done$(NC)\n"
 	@printf "\n$(YELLOW)📋 Quick Actions:$(NC)\n"
 	@printf "$(DIM)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
 	@printf "  • stage and commit: $(BLUE)make git-add-commit$(NC)\n"
