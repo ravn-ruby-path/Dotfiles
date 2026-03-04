@@ -1,3 +1,6 @@
+# ═══════════════════════════════════════════════════════════════
+# 🖥️  CONFIGURATION - NIXOS SYSTEM CONFIGURATION
+# ═══════════════════════════════════════════════════════════════
 {
   inputs,
   pkgs,
@@ -5,6 +8,9 @@
   ...
 }:
 {
+  # ═══════════════════════════════════════════════════════════════
+  # 📥 IMPORTS - MODULE AND HARDWARE DEPENDENCIES
+  # ═══════════════════════════════════════════════════════════════
   imports = [
     inputs.hydenix.inputs.home-manager.nixosModules.home-manager
     inputs.hydenix.nixosModules.default
@@ -14,6 +20,9 @@
     inputs.nixos-hardware.nixosModules.common-pc-ssd
   ];
 
+  # ═══════════════════════════════════════════════════════════════
+  # 🏠 HOME MANAGER - USER ENVIRONMENT CONFIGURATION
+  # ═══════════════════════════════════════════════════════════════
   home-manager = {
     useGlobalPkgs = true;
     useUserPackages = true;
@@ -28,6 +37,9 @@
       };
   };
 
+  # ═══════════════════════════════════════════════════════════════
+  # 👤 USER ACCOUNTS - SYSTEM USER CONFIGURATION
+  # ═══════════════════════════════════════════════════════════════
   users.users.ravn = {
     isNormalUser = true;
     initialPassword = "0394661280";
@@ -39,6 +51,9 @@
     shell = pkgs.zsh;
   };
 
+  # ═══════════════════════════════════════════════════════════════
+  # 🎨 HYDENIX - HYPRLAND DESKTOP ENVIRONMENT FRAMEWORK
+  # ═══════════════════════════════════════════════════════════════
   hydenix = {
     enable = true;
     hostname = "ravn";
@@ -47,38 +62,37 @@
   };
 
   # ═══════════════════════════════════════════════════════════════
-  # 🚀 CONFIGURACIÓN DE RED - OVERRIDE AGRESIVO DE DNS
+  # 🚀 NETWORK CONFIGURATION - AGGRESSIVE DNS OVERRIDE
   # ═══════════════════════════════════════════════════════════════
-
   networking = {
     networkmanager = {
       enable = true;
       dns = lib.mkForce "default";
-      
-      # Insertar DNS que sobrescriben DHCP
+
+      # ──── DNS Nameservers: Override DHCP-provided servers ─────────────
       insertNameservers = [ "1.1.1.1" "1.0.0.1" "9.9.9.9" ];
-      
+
       wifi.powersave = false;
       ethernet.macAddress = "preserve";
-      
-      # Script para forzar DNS después de cada cambio de red
+
+      # ──── Dispatcher Script: Force DNS on every network change ────────
       dispatcherScripts = [
         {
           source = pkgs.writeText "force-cloudflare-dns" ''
             #!/bin/sh
-            # Este script se ejecuta cada vez que cambia el estado de red
-            
+            # Runs on every network state change
+
             INTERFACE="$1"
             ACTION="$2"
-            
-            # Solo actuar en la interface ethernet y cuando está up
+
+            # Only act on ethernet interface when it comes up
             if [ "$INTERFACE" = "enp0s31f6" ] && [ "$ACTION" = "up" ]; then
-              # Forzar DNS de Cloudflare
+              # Force Cloudflare DNS
               ${pkgs.systemd}/bin/resolvectl dns "$INTERFACE" 1.1.1.1 1.0.0.1 9.9.9.9
               ${pkgs.systemd}/bin/resolvectl domain "$INTERFACE" '~.'
               ${pkgs.systemd}/bin/resolvectl dnsovertls "$INTERFACE" yes
-              
-              # Log para debug
+
+              # Log for debugging
               echo "$(date): Forced DNS on $INTERFACE" >> /var/log/dns-override.log
               ${pkgs.systemd}/bin/resolvectl status "$INTERFACE" >> /var/log/dns-override.log
             fi
@@ -87,36 +101,35 @@
         }
       ];
     };
-    
-    # DNS a nivel de sistema
-    nameservers = lib.mkForce [ 
+
+    # ──── System-Level Nameservers ───────────────────────────────────
+    nameservers = lib.mkForce [
       "1.1.1.1"
       "1.0.0.1"
       "9.9.9.9"
     ];
-    
+
     search = [ ];
-    
+
     firewall = {
       enable = true;
       allowedTCPPorts = [ ];
       allowedUDPPorts = [ ];
-      
-      # Bloquear completamente los DNS del ISP
+
+      # ──── ISP DNS Blocker: Reject queries to ISP nameservers ──────────
       extraCommands = ''
-        # Rechazar cualquier consulta DNS a servidores del ISP
         iptables -I OUTPUT -d 179.51.50.203 -p udp --dport 53 -j REJECT
         iptables -I OUTPUT -d 179.51.50.203 -p tcp --dport 53 -j REJECT
         iptables -I OUTPUT -d 179.51.50.202 -p udp --dport 53 -j REJECT
         iptables -I OUTPUT -d 179.51.50.202 -p tcp --dport 53 -j REJECT
-        
-        # También bloquear cualquier tráfico a esos IPs (por si acaso)
+
+        # Also block all traffic to those IPs as a safety net
         iptables -I OUTPUT -d 179.51.50.203 -j REJECT
         iptables -I OUTPUT -d 179.51.50.202 -j REJECT
       '';
-      
+
       extraStopCommands = ''
-        # Limpiar reglas al detener firewall
+        # Clean up rules on firewall stop
         iptables -D OUTPUT -d 179.51.50.203 -p udp --dport 53 -j REJECT 2>/dev/null || true
         iptables -D OUTPUT -d 179.51.50.203 -p tcp --dport 53 -j REJECT 2>/dev/null || true
         iptables -D OUTPUT -d 179.51.50.202 -p udp --dport 53 -j REJECT 2>/dev/null || true
@@ -128,15 +141,14 @@
   };
 
   # ═══════════════════════════════════════════════════════════════
-  # 🔧 SYSTEMD-RESOLVED: MÁXIMA PRIORIDAD A CLOUDFLARE
+  # 🔧 SYSTEMD-RESOLVED - CLOUDFLARE DNS PRIORITY
   # ═══════════════════════════════════════════════════════════════
-  
   services.resolved = {
     enable = true;
     dnssec = "allow-downgrade";
     domains = [ "~." ];
     fallbackDns = [ "8.8.8.8" "8.8.4.4" ];
-    
+
     extraConfig = ''
       DNS=1.1.1.1 1.0.0.1 9.9.9.9
       FallbackDNS=8.8.8.8 8.8.4.4
@@ -148,39 +160,38 @@
       DNSStubListener=yes
       ReadEtcHosts=yes
       Domains=~.
-      # Preferir siempre nuestros DNS sobre los del DHCP
+      # Always prefer our DNS over DHCP-provided servers
       DNSDefaultRoute=yes
     '';
   };
 
   # ═══════════════════════════════════════════════════════════════
-  # 🔄 SERVICIO PARA FORZAR DNS AL INICIO
+  # 🔄 SYSTEMD SERVICE - FORCE DNS ON BOOT
   # ═══════════════════════════════════════════════════════════════
-  
   systemd.services.force-dns-override = {
     description = "Force Cloudflare DNS on network interface";
     after = [ "network-online.target" "systemd-resolved.service" ];
     wants = [ "network-online.target" ];
     wantedBy = [ "multi-user.target" ];
-    
+
     serviceConfig = {
       Type = "oneshot";
       RemainAfterExit = true;
       ExecStart = pkgs.writeShellScript "force-dns" ''
-        # Esperar a que la red esté lista
+        # Wait for network to be ready
         sleep 3
-        
-        # Forzar DNS en la interface ethernet
+
+        # Force DNS on ethernet interface
         ${pkgs.systemd}/bin/resolvectl dns enp0s31f6 1.1.1.1 1.0.0.1 9.9.9.9
         ${pkgs.systemd}/bin/resolvectl domain enp0s31f6 '~.'
         ${pkgs.systemd}/bin/resolvectl dnsovertls enp0s31f6 yes
-        
-        # Verificar y loggear
+
+        # Log applied settings
         echo "=== DNS Override Applied ===" > /var/log/dns-override.log
         date >> /var/log/dns-override.log
         ${pkgs.systemd}/bin/resolvectl status enp0s31f6 >> /var/log/dns-override.log
-        
-        # Verificar que las reglas de firewall están activas
+
+        # Verify firewall rules are active
         echo "=== Firewall Rules ===" >> /var/log/dns-override.log
         ${pkgs.iptables}/bin/iptables -L OUTPUT -n | grep 179.51 >> /var/log/dns-override.log || echo "No firewall rules found" >> /var/log/dns-override.log
       '';
@@ -188,31 +199,28 @@
   };
 
   # ═══════════════════════════════════════════════════════════════
-  # ⚡ OPTIMIZACIONES DEL KERNEL
+  # ⚡ KERNEL OPTIMIZATIONS - TCP/BBR NETWORK TUNING
   # ═══════════════════════════════════════════════════════════════
-  
   boot.kernel.sysctl = {
-    # TCP buffers
+    # ──── TCP Buffer Sizes ───────────────────────────────────────────
     "net.core.rmem_max" = 16777216;
     "net.core.wmem_max" = 16777216;
     "net.ipv4.tcp_rmem" = "4096 87380 16777216";
     "net.ipv4.tcp_wmem" = "4096 65536 16777216";
-    
-    # BBR para conexiones con latencia variable
+
+    # ──── BBR Congestion Control ─────────────────────────────────────
     "net.core.default_qdisc" = "fq";
     "net.ipv4.tcp_congestion_control" = "bbr";
-    
-    # Reduce latencia
+
+    # ──── Latency Reduction ─────────────────────────────────────────
     "net.ipv4.tcp_fastopen" = 3;
     "net.ipv4.tcp_slow_start_after_idle" = 0;
-    
-    # Optimizaciones para alta latencia
     "net.ipv4.tcp_mtu_probing" = 1;
     "net.ipv4.tcp_timestamps" = 1;
     "net.ipv4.tcp_window_scaling" = 1;
     "net.ipv4.tcp_sack" = 1;
-    
-    # Reducir timeouts
+
+    # ──── TCP Timeouts ─────────────────────────────────────────────
     "net.ipv4.tcp_fin_timeout" = 15;
     "net.ipv4.tcp_keepalive_time" = 300;
     "net.ipv4.tcp_keepalive_probes" = 5;
@@ -220,9 +228,8 @@
   };
 
   # ═══════════════════════════════════════════════════════════════
-  # 📦 HERRAMIENTAS
+  # 📦 SYSTEM PACKAGES - DEVELOPER AND NETWORK TOOLS
   # ═══════════════════════════════════════════════════════════════
-  
   environment.systemPackages = with pkgs; [
     nodejs_22
     corepack_22
@@ -248,16 +255,16 @@
     tldr
   ];
 
+  # ──── Environment Variables ─────────────────────────────────────────
   environment.variables = {
     COREPACK_ENABLE_DOWNLOAD_PROMPT = "0";
   };
 
   # ═══════════════════════════════════════════════════════════════
-  # 📊 MONITOR DE CALIDAD
+  # 📊 NETWORK QUALITY MONITOR - HOURLY DIAGNOSTICS
   # ═══════════════════════════════════════════════════════════════
-  
   systemd.services.network-quality-monitor = {
-    description = "Monitor de calidad de red";
+    description = "Network quality monitor";
     after = [ "network-online.target" ];
     wants = [ "network-online.target" ];
     
@@ -273,6 +280,7 @@
     };
   };
   
+  # ──── Timer: Run every hour ─────────────────────────────────────────
   systemd.timers.network-quality-monitor = {
     wantedBy = [ "timers.target" ];
     timerConfig = {
@@ -281,5 +289,6 @@
     };
   };
 
+  # ──── NixOS State Version ──────────────────────────────────────────
   system.stateVersion = "25.05";
 }
