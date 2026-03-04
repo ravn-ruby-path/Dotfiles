@@ -38,7 +38,7 @@ endif
 		printf "$(GREEN)  ✓ staged $$CHANGED file(s)$(NC)\n\n"; \
 		git status --short | sed 's/^/  /'; \
 	else \
-		printf "$(YELLOW)  ⚠  nothing to stage — working tree is clean$(NC)\n"; \
+		printf "$(GREEN)  ✓  nothing to stage — working tree is clean$(NC)\n"; \
 	fi
 ifndef EMBEDDED
 	@printf "\n$(GREEN)  ✓ done$(NC)\n"
@@ -69,7 +69,7 @@ endif
 		BRANCH=$$(git branch --show-current); \
 		printf "$(GREEN)  ✓ $(NC)$(DIM)$$COMMIT_HASH$(NC)  $$BRANCH\n"; \
 	else \
-		printf "$(YELLOW)  ⚠  nothing to commit — working tree is clean$(NC)\n"; \
+		printf "$(GREEN)  ✓  nothing to commit — working tree is clean$(NC)\n"; \
 	fi
 ifndef EMBEDDED
 	@printf "\n$(GREEN)  ✓ done$(NC)\n"
@@ -115,7 +115,7 @@ endif
 		$(EXEC) git push || exit 1; \
 		printf "$(GREEN)  ✓ pushed to remote$(NC)\n"; \
 	else \
-		printf "$(YELLOW)  ⚠  everything up-to-date$(NC)\n"; \
+		printf "$(GREEN)  ✓  everything up-to-date$(NC)\n"; \
 	fi
 ifndef EMBEDDED
 	@printf "\n$(GREEN)  ✓ done$(NC)\n"
