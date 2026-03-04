@@ -1,9 +1,7 @@
 # ═══════════════════════════════════════════════════════════════
 # 🔧 SYSTEM MODULE - CUSTOM SYSTEM-LEVEL CONFIGURATION
 # ═══════════════════════════════════════════════════════════════
-{ ... }:
-
-{
+{...}: {
   imports = [
     # ./example.nix - add your system modules here
   ];

@@ -6,13 +6,10 @@
   lib,
   pkgs,
   ...
-}:
-
-let
+}: let
   # Customizable configuration
   cfg = config.modules.terminal.software.gh;
-in
-{
+in {
   # ──── Options ────────────────────────────────────────────────────
   options.modules.terminal.software.gh = {
     enable = lib.mkEnableOption "GitHub CLI (gh)";
@@ -43,7 +40,7 @@ in
 
     # === Git Protocol (https or ssh) ===
     gitProtocol = lib.mkOption {
-      type = lib.types.enum [ "https" "ssh" ];
+      type = lib.types.enum ["https" "ssh"];
       default = "https";
       description = "Protocol for Git operations";
     };
@@ -52,25 +49,27 @@ in
   # ──── Configuration ─────────────────────────────────────────────────
   config = lib.mkMerge [
     (lib.mkIf cfg.enable {
-      # ──── Packages ────────────────────────────────────────────
-      home.packages = with pkgs; [
-        gh
-      ];
+      home = {
+        # ──── Packages ──────────────────────────────────────────
+        packages = with pkgs; [gh];
 
-      # ──── Session Variables ──────────────────────────────────
-      home.sessionVariables = {
-        GH_EDITOR = cfg.editor;
-        GH_PAGER = "less -FR";
-      } // lib.optionalAttrs (cfg.browser != "") {
-        GH_BROWSER = cfg.browser;
-      };
+        # ──── Session Variables ─────────────────────────────────
+        sessionVariables =
+          {
+            GH_EDITOR = cfg.editor;
+            GH_PAGER = "less -FR";
+          }
+          // lib.optionalAttrs (cfg.browser != "") {
+            GH_BROWSER = cfg.browser;
+          };
 
-      # ──── Shell Aliases ───────────────────────────────────────
-      home.shellAliases = {
-        ghco = "gh pr checkout";
-        ghpv = "gh pr view";
-        ghrv = "gh repo view";
-        ghis = "gh issue status";
+        # ──── Shell Aliases ─────────────────────────────────────
+        shellAliases = {
+          ghco = "gh pr checkout";
+          ghpv = "gh pr view";
+          ghrv = "gh repo view";
+          ghis = "gh issue status";
+        };
       };
     })
 
