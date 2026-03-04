@@ -4,7 +4,7 @@ A deeply modified NixOS configuration based on [Hydenix](https://github.com/rich
 
 ## 🚀 Installation Options
 
-### Full Installation (This Branch)
+### Full Installation (Recommended)
 Get the latest features and updates:
 ```bash
 git clone https://github.com/ravn-ruby-path/Dotfiles.git
@@ -22,7 +22,7 @@ cd Dotfiles
 - **Full Installation (`main` branch):** Latest features, ongoing updates, experimental configurations
 - **Minimal Installation (`minimal-installation` branch):** Stable v1.0.0 snapshot with core features only (Git config, Cloudflare DNS, basic system management)
 
-See [MINIMAL_INSTALLATION.md](https://github.com/ravn-ruby-path/Dotfiles/blob/minimal-installation/MINIMAL_INSTALLATION.md) for details about the minimal branch.
+See [MINIMAL_INSTALLATION.md](MINIMAL_INSTALLATION.md) for details about the minimal branch.
 
 ## See It in Action
 
