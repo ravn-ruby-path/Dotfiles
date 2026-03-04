@@ -262,6 +262,7 @@
     alejandra
     statix
     nil
+    direnv
   ];
 
   # ──── Environment Variables ─────────────────────────────────────────
