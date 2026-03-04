@@ -34,11 +34,11 @@ sys-deploy: ## Total sync (doctor + add + commit + push + apply)
 	@printf "\n"
 	@printf "$(CYAN)🚀 sys-deploy · doctor → git → apply$(NC)\n"
 	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
-	@printf "$(DIM)  ▶ fixing permissions...$(NC)\n"
+	@printf "\n$(DIM)  ▶ fixing permissions...$(NC)\n"
 	@$(MAKE) --no-print-directory sys-doctor EMBEDDED=1
-	@printf "$(DIM)  ▶ fixing git ownership...$(NC)\n"
+	@printf "\n$(DIM)  ▶ fixing git ownership...$(NC)\n"
 	@$(MAKE) --no-print-directory sys-fix-git EMBEDDED=1
-	@printf "$(DIM)  ▶ checking format...$(NC)\n"
+	@printf "\n$(DIM)  ▶ checking format...$(NC)\n"
 	@if command -v alejandra >/dev/null 2>&1; then \
 		if ! alejandra --check . >/dev/null 2>&1; then \
 			printf "$(RED)  ✗ unformatted files found — run: make fmt-check$(NC)\n"; \
@@ -46,13 +46,13 @@ sys-deploy: ## Total sync (doctor + add + commit + push + apply)
 		fi; \
 		printf "$(DIM)    format ok$(NC)\n"; \
 	fi
-	@printf "$(DIM)  ▶ staging changes...$(NC)\n"
+	@printf "\n$(DIM)  ▶ staging changes...$(NC)\n"
 	@$(MAKE) --no-print-directory git-add EMBEDDED=1
-	@printf "$(DIM)  ▶ committing...$(NC)\n"
+	@printf "\n$(DIM)  ▶ committing...$(NC)\n"
 	@$(MAKE) --no-print-directory git-commit EMBEDDED=1
-	@printf "$(DIM)  ▶ pushing to remote...$(NC)\n"
+	@printf "\n$(DIM)  ▶ pushing to remote...$(NC)\n"
 	@$(MAKE) --no-print-directory git-push EMBEDDED=1
-	@printf "$(DIM)  ▶ rebuilding system...$(NC)\n"
+	@printf "\n$(DIM)  ▶ rebuilding system...$(NC)\n"
 	@$(MAKE) --no-print-directory sys-apply-core EMBEDDED=1
 	@printf "\n$(GREEN)  ✓ done$(NC)\n"
 	@printf "\n$(YELLOW)📋 Quick Actions:$(NC)\n"
