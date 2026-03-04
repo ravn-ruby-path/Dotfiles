@@ -2,7 +2,6 @@
   // ──── Editor ────────────────────────────────────────────────
   "editor.renderWhitespace": "trailing",
   "editor.formatOnSave": true,
-
   // ──── Nix: Formatter (alejandra) ────────────────────────────
   "nix.enableLanguageServer": true,
   "nix.serverPath": "nil",
@@ -11,15 +10,21 @@
     "editor.defaultFormatter": "jnoortheen.nix-ide",
     "editor.formatOnSave": true
   },
-
   // ──── Nix: Linter (statix → Problems panel) ─────────────────
+  // statix runs via task on folder open and manually (Ctrl+Shift+B)
+  // nil LSP handles real-time diagnostics (syntax, undefined vars)
+  "task.allowAutomaticTasksInFolder": "on",
   "nix.serverSettings": {
     "nil": {
       "diagnostics": {
         "ignored": []
       },
       "formatting": {
-        "command": ["alejandra", "--quiet", "-"]
+        "command": [
+          "alejandra",
+          "--quiet",
+          "-"
+        ]
       }
     }
   }
