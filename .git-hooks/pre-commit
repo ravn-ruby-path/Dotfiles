@@ -1,0 +1,116 @@
+#!/usr/bin/env bash
+# ═══════════════════════════════════════════════════════════════
+# 🔒 PRE-COMMIT HOOK - NIX FORMAT AND LINT GATE
+# ═══════════════════════════════════════════════════════════════
+# - alejandra: auto-fixes formatting in place, re-stages changed files
+# - statix:    blocks on warnings, generates AI-ready report in logs/
+#
+# Escape hatch: SKIP_HOOKS=1 git commit
+
+set -euo pipefail
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "$REPO_ROOT"
+
+# ──── Escape Hatch ──────────────────────────────────────────────
+if [ "${SKIP_HOOKS:-0}" = "1" ]; then
+  printf "  \033[2m⊘ pre-commit hooks skipped (SKIP_HOOKS=1)\033[0m\n"
+  exit 0
+fi
+
+PASS=1
+
+printf "\n\033[36m🔒 pre-commit · nix quality gate\033[0m\n"
+printf "\033[36m────────────────────────────────────────────────────────────────────────────────\033[0m\n"
+
+# ═══════════════════════════════════════════════════════════════
+# 🎨 STEP 1 - ALEJANDRA: Auto-format, re-stage if changed
+# ═══════════════════════════════════════════════════════════════
+printf "  alejandra format...          "
+
+if ! command -v alejandra >/dev/null 2>&1; then
+  printf "\033[2m⊘ not installed\033[0m\n"
+else
+  alejandra . >/dev/null 2>&1
+
+  # Re-stage any .nix files that alejandra changed and were already staged
+  RESTAGED=0
+  while IFS= read -r file; do
+    if git diff --name-only --cached | grep -qF "$file"; then
+      git add "$file"
+      RESTAGED=$((RESTAGED + 1))
+    fi
+  done < <(git diff --name-only -- '*.nix' 2>/dev/null)
+
+  if [ "$RESTAGED" -gt 0 ]; then
+    printf "\033[33m✎ reformatted %d file(s) — re-staged\033[0m\n" "$RESTAGED"
+  else
+    printf "\033[32m✓\033[0m\n"
+  fi
+fi
+
+# ═══════════════════════════════════════════════════════════════
+# 🔎 STEP 2 - STATIX: Block on warnings
+# ═══════════════════════════════════════════════════════════════
+printf "  statix lint...               "
+
+if ! command -v statix >/dev/null 2>&1; then
+  printf "\033[2m⊘ not installed\033[0m\n"
+else
+  STATIX_OUT=$(statix check . 2>&1) || true
+  if [ -z "$STATIX_OUT" ]; then
+    printf "\033[32m✓\033[0m\n"
+  else
+    printf "\033[31m✗ warnings found\033[0m\n"
+    PASS=0
+  fi
+fi
+
+# ═══════════════════════════════════════════════════════════════
+# �� REPORT - Generate AI-ready log on failure
+# ═══════════════════════════════════════════════════════════════
+if [ "$PASS" = "0" ]; then
+  mkdir -p "$REPO_ROOT/logs"
+  LOG_FILE="$REPO_ROOT/logs/nix-report-$(date '+%Y%m%d-%H%M%S').log"
+
+  {
+    echo "═══════════════════════════════════════════════════════════════"
+    echo "  NIX QUALITY REPORT — $(date '+%Y-%m-%d %H:%M:%S')"
+    echo "  Repo: $(git remote get-url origin 2>/dev/null || echo 'local')"
+    echo "  Branch: $(git branch --show-current)"
+    echo "═══════════════════════════════════════════════════════════════"
+    echo ""
+    echo "──── Staged Files ──────────────────────────────────────────────"
+    git diff --name-only --cached
+    echo ""
+    echo "──── Statix Warnings ───────────────────────────────────────────"
+    echo "$STATIX_OUT"
+    echo ""
+    echo "═══════════════════════════════════════════════════════════════"
+    echo "  AI PROMPT"
+    echo "═══════════════════════════════════════════════════════════════"
+    echo ""
+    echo "I have a NixOS flake-based dotfiles repo. The pre-commit hook"
+    echo "found statix lint warnings shown above. Please:"
+    echo ""
+    echo "1. Explain what each warning means in the context of Nix"
+    echo "2. Show the exact fix for each warning with a code snippet"
+    echo "3. Confirm if any are intentional false positives (e.g. INI"
+    echo "   attrsets, split systemd keys for section headers) that"
+    echo "   should be added to statix.toml instead"
+    echo ""
+    echo "Files involved:"
+    git diff --name-only --cached | grep '\.nix$' || echo "  (none staged)"
+  } > "$LOG_FILE"
+
+  printf "\n\033[31m  ✗ commit blocked — statix warnings must be resolved\033[0m\n"
+  printf "\n  \033[33m📋 AI report saved:\033[0m\n"
+  printf "     \033[2m%s\033[0m\n" "$LOG_FILE"
+  printf "\n  \033[2mFix the warnings, then commit again.\033[0m\n"
+  printf "  \033[2mTo suppress false positives: add to statix.toml\033[0m\n"
+  printf "  \033[2mTo skip hooks (emergency): SKIP_HOOKS=1 git commit\033[0m\n\n"
+  exit 1
+fi
+
+printf "\n\033[32m  ✓ all checks passed\033[0m\n\n"
+exit 0
