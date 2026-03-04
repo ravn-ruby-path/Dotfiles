@@ -44,7 +44,7 @@ sys-deploy: ## Total sync (doctor + add + commit + push + apply)
 			printf "$(RED)  ✗ unformatted files found — run: make fmt-check$(NC)\n"; \
 			exit 1; \
 		fi; \
-		printf "$(DIM)    format ok$(NC)\n"; \
+		printf "$(GREEN)    ✓ format ok$(NC)\n"; \
 	fi
 	@printf "\n$(DIM)  ▶ staging changes...$(NC)\n"
 	@$(MAKE) --no-print-directory git-add EMBEDDED=1
