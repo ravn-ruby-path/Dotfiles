@@ -1,3 +1,26 @@
 {
-  "editor.renderWhitespace": "trailing"
+  // ──── Editor ────────────────────────────────────────────────
+  "editor.renderWhitespace": "trailing",
+  "editor.formatOnSave": true,
+
+  // ──── Nix: Formatter (alejandra) ────────────────────────────
+  "nix.enableLanguageServer": true,
+  "nix.serverPath": "nil",
+  "nix.formatterPath": "alejandra",
+  "[nix]": {
+    "editor.defaultFormatter": "jnoortheen.nix-ide",
+    "editor.formatOnSave": true
+  },
+
+  // ──── Nix: Linter (statix → Problems panel) ─────────────────
+  "nix.serverSettings": {
+    "nil": {
+      "diagnostics": {
+        "ignored": []
+      },
+      "formatting": {
+        "command": ["alejandra", "--quiet", "-"]
+      }
+    }
+  }
 }
