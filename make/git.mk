@@ -108,10 +108,10 @@ ifndef EMBEDDED
 endif
 	@BRANCH=$$(git branch --show-current); \
 	REMOTE=$$(git remote get-url origin 2>/dev/null | sed -E 's|.*github.com[:/]([^/]+/[^/]+)(\.git)?$$|\1|' | sed 's|\.git$$||'); \
-	printf "  $(DIM)branch:$(NC) $$BRANCH  $(DIM)remote:$(NC) $$REMOTE\n\n"; \
 	UNPUSHED=$$(git log origin/$$BRANCH..HEAD --oneline 2>/dev/null | wc -l); \
+	printf "  $(DIM)branch:$(NC) $$BRANCH  $(DIM)remote:$(NC) $$REMOTE\n"; \
 	if [ $$UNPUSHED -gt 0 ]; then \
-		printf "  pushing $$UNPUSHED commit(s)...\n"; \
+		printf "\n  pushing $$UNPUSHED commit(s)...\n"; \
 		$(EXEC) git push || exit 1; \
 		printf "$(GREEN)  ✓ pushed to remote$(NC)\n"; \
 	else \
