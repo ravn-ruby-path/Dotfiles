@@ -1,6 +1,6 @@
 {
-  "recommendations": [
-    // ──── Nix: syntax, formatting (alejandra), LSP (nil) ────────
-    "jnoortheen.nix-ide"
-  ]
+    "recommendations": [
+        // ──── Nix: syntax, formatting (alejandra), LSP (nil) ────────
+        "jnoortheen.nix-ide"
+    ]
 }
