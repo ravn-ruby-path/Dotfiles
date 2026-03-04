@@ -38,6 +38,14 @@ sys-deploy: ## Total sync (doctor + add + commit + push + apply)
 	@$(MAKE) --no-print-directory sys-doctor EMBEDDED=1
 	@printf "$(DIM)  ▶ fixing git ownership...$(NC)\n"
 	@$(MAKE) --no-print-directory sys-fix-git EMBEDDED=1
+	@printf "$(DIM)  ▶ checking format...$(NC)\n"
+	@if command -v alejandra >/dev/null 2>&1; then \
+		if ! alejandra --check . >/dev/null 2>&1; then \
+			printf "$(RED)  ✗ unformatted files found — run: make fmt-check$(NC)\n"; \
+			exit 1; \
+		fi; \
+		printf "$(DIM)    format ok$(NC)\n"; \
+	fi
 	@printf "$(DIM)  ▶ staging changes...$(NC)\n"
 	@$(MAKE) --no-print-directory git-add EMBEDDED=1
 	@printf "$(DIM)  ▶ committing...$(NC)\n"
