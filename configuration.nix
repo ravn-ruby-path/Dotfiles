@@ -261,6 +261,9 @@
     vnstat
     jq
     tldr
+    # ──── Nix Formatters and Linters ────────────────────────────────
+    alejandra
+    statix
   ];
 
   # ──── Environment Variables ─────────────────────────────────────────
