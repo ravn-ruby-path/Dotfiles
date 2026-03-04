@@ -64,6 +64,7 @@
   # ═══════════════════════════════════════════════════════════════
   # 🚀 NETWORK CONFIGURATION - AGGRESSIVE DNS OVERRIDE
   # ═══════════════════════════════════════════════════════════════
+
   networking = {
     networkmanager = {
       enable = true;
@@ -118,6 +119,7 @@
 
       # ──── ISP DNS Blocker: Reject queries to ISP nameservers ──────────
       extraCommands = ''
+        # Rechazar cualquier consulta DNS a servidores del ISP
         iptables -I OUTPUT -d 179.51.50.203 -p udp --dport 53 -j REJECT
         iptables -I OUTPUT -d 179.51.50.203 -p tcp --dport 53 -j REJECT
         iptables -I OUTPUT -d 179.51.50.202 -p udp --dport 53 -j REJECT
@@ -143,6 +145,7 @@
   # ═══════════════════════════════════════════════════════════════
   # 🔧 SYSTEMD-RESOLVED - CLOUDFLARE DNS PRIORITY
   # ═══════════════════════════════════════════════════════════════
+  
   services.resolved = {
     enable = true;
     dnssec = "allow-downgrade";
@@ -168,6 +171,7 @@
   # ═══════════════════════════════════════════════════════════════
   # 🔄 SYSTEMD SERVICE - FORCE DNS ON BOOT
   # ═══════════════════════════════════════════════════════════════
+  
   systemd.services.force-dns-override = {
     description = "Force Cloudflare DNS on network interface";
     after = [ "network-online.target" "systemd-resolved.service" ];
@@ -201,6 +205,7 @@
   # ═══════════════════════════════════════════════════════════════
   # ⚡ KERNEL OPTIMIZATIONS - TCP/BBR NETWORK TUNING
   # ═══════════════════════════════════════════════════════════════
+  
   boot.kernel.sysctl = {
     # ──── TCP Buffer Sizes ───────────────────────────────────────────
     "net.core.rmem_max" = 16777216;
@@ -215,6 +220,8 @@
     # ──── Latency Reduction ─────────────────────────────────────────
     "net.ipv4.tcp_fastopen" = 3;
     "net.ipv4.tcp_slow_start_after_idle" = 0;
+    
+    # Optimizaciones para alta latencia
     "net.ipv4.tcp_mtu_probing" = 1;
     "net.ipv4.tcp_timestamps" = 1;
     "net.ipv4.tcp_window_scaling" = 1;
@@ -230,6 +237,7 @@
   # ═══════════════════════════════════════════════════════════════
   # 📦 SYSTEM PACKAGES - DEVELOPER AND NETWORK TOOLS
   # ═══════════════════════════════════════════════════════════════
+  
   environment.systemPackages = with pkgs; [
     nodejs_22
     corepack_22
@@ -263,6 +271,7 @@
   # ═══════════════════════════════════════════════════════════════
   # 📊 NETWORK QUALITY MONITOR - HOURLY DIAGNOSTICS
   # ═══════════════════════════════════════════════════════════════
+  
   systemd.services.network-quality-monitor = {
     description = "Network quality monitor";
     after = [ "network-online.target" ];

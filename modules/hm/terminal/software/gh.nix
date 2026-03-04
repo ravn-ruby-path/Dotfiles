@@ -9,6 +9,7 @@
 }:
 
 let
+  # Customizable configuration
   cfg = config.modules.terminal.software.gh;
 in
 {
@@ -37,10 +38,10 @@ in
       type = lib.types.str;
       default = "";
       description = "Your GitHub username";
-      example = "linuxmobile";
+      example = "25ASAB015";
     };
 
-    # === Git Protocol ===
+    # === Git Protocol (https or ssh) ===
     gitProtocol = lib.mkOption {
       type = lib.types.enum [ "https" "ssh" ];
       default = "https";
