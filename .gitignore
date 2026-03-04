@@ -5,7 +5,8 @@ docs/src/content/docs/es/*
 .direnv
 *.qcow2
 result
-.git-hooks
+logs/*
+!logs/.gitkeep
 node_modules/
 docs/node_modules/
 docs/dist/
