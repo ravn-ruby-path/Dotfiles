@@ -1,9 +1,6 @@
-# Git version control with delta pager, GPG signing, and LFS
-#
-# Documentation: docs/src/content/docs/git.mdx
-# Used by:    modules/hm/programs/terminal/software/default.nix
-# Depends on: none
-# ----------------------------------------------------------------------------
+# ═══════════════════════════════════════════════════════════════
+# 🔀 GIT - VERSION CONTROL WITH DELTA, GPG SIGNING AND LFS
+# ═══════════════════════════════════════════════════════════════
 {
   config,
   lib,
@@ -18,12 +15,11 @@ let
   ignoreFile = "git/ignore";
 in
 {
+  # ──── Options ────────────────────────────────────────────────────
   options.modules.terminal.software.git = {
     enable = lib.mkEnableOption "Git with advanced configuration";
 
-    # ----------------------------------------------------------------------------
-    # User identity
-    # ----------------------------------------------------------------------------
+    # === User Identity ===
     userName = lib.mkOption {
       type = lib.types.str;
       default = "";
@@ -38,9 +34,7 @@ in
       example = "juan@example.com";
     };
 
-    # ----------------------------------------------------------------------------
-    # Editor and tools
-    # ----------------------------------------------------------------------------
+    # === Editor and Tools ===
     editor = lib.mkOption {
       type = lib.types.str;
       default = "nvim";
@@ -48,9 +42,7 @@ in
       example = "code --wait";
     };
 
-    # ----------------------------------------------------------------------------
-    # Delta (enhanced pager with syntax highlighting)
-    # ----------------------------------------------------------------------------
+    # === Delta: Enhanced Diff Pager ===
     delta = {
       enable = lib.mkOption {
         type = lib.types.bool;
@@ -65,9 +57,7 @@ in
       };
     };
 
-    # ----------------------------------------------------------------------------
-    # GPG signing (optional)
-    # ----------------------------------------------------------------------------
+    # === GPG Signing ===
     gpg = {
       enable = lib.mkOption {
         type = lib.types.bool;
@@ -83,18 +73,14 @@ in
       };
     };
 
-    # ----------------------------------------------------------------------------
-    # Git LFS (large files)
-    # ----------------------------------------------------------------------------
+    # === Git LFS ===
     lfs.enable = lib.mkOption {
       type = lib.types.bool;
       default = true;
       description = "Enable Git LFS for large files";
     };
 
-    # ----------------------------------------------------------------------------
-    # Custom aliases
-    # ----------------------------------------------------------------------------
+    # === Custom Aliases ===
     extraAliases = lib.mkOption {
       type = lib.types.attrsOf lib.types.str;
       default = {};
@@ -102,9 +88,7 @@ in
       example = { wip = "commit -am 'WIP'"; };
     };
 
-    # ----------------------------------------------------------------------------
-    # Gitignore global
-    # ----------------------------------------------------------------------------
+    # === Global Gitignore ===
     ignorePatterns = lib.mkOption {
       type = lib.types.listOf lib.types.str;
       default = [
@@ -120,103 +104,94 @@ in
     };
   };
 
+  # ──── Configuration ─────────────────────────────────────────────────
   config = lib.mkMerge [
     (lib.mkIf cfg.enable {
-    # Required packages
-    home.packages = with pkgs; [
-      git
-      peco        # For interactive aliases
-    ] 
-    ++ lib.optionals cfg.delta.enable [ delta ]
-    ++ lib.optionals cfg.gpg.enable [ gnupg ]
-    ++ lib.optionals cfg.lfs.enable [ git-lfs ];
+      # ──── Packages ────────────────────────────────────────────
+      home.packages = with pkgs; [
+        git
+        peco
+      ]
+      ++ lib.optionals cfg.delta.enable [ delta ]
+      ++ lib.optionals cfg.gpg.enable [ gnupg ]
+      ++ lib.optionals cfg.lfs.enable [ git-lfs ];
 
-    # Main Git configuration
-    xdg.configFile."${configFile}".source = toINI "config" (
-      {
-        # ----------------------------------------------------------------------------
-        # Useful aliases
-        # ----------------------------------------------------------------------------
-        alias = {
-          # Basics
-          st = "status";
-          br = "branch";
-          co = "checkout";
-          d = "diff";
-          
-          # Commits
-          ca = "commit -am";
-          fuck = "commit --amend -m";  # Change last commit message
-          
-          # Simplified Push/Pull
-          pl = "!git pull origin $(git rev-parse --abbrev-ref HEAD)";
-          ps = "!git push origin $(git rev-parse --abbrev-ref HEAD)";
-          
-          # Visual history
-          hist = ''log --pretty=format:"%Cgreen%h %Creset%cd %Cblue[%cn] %Creset%s%C(yellow)%d%C(reset)" --graph --date=relative --decorate --all'';
-          llog = ''log --graph --name-status --pretty=format:"%C(red)%h %C(reset)(%cd) %C(green)%an %Creset%s %C(yellow)%d%Creset" --date=relative'';
-          
-          # Interactive (requires fzf/peco)
-          af = "!git add $(git ls-files -m -o --exclude-standard | fzf -m)";
-          df = "!git hist | peco | awk '{print $2}' | xargs -I {} git diff {}^ {}";
-        } // cfg.extraAliases;
+      # ──── Git Config File ───────────────────────────────────────
+      xdg.configFile."${configFile}".source = toINI "config" (
+        {
+          # ──── Aliases ─────────────────────────────────────────────────
+          alias = {
+            # Basics
+            st = "status";
+            br = "branch";
+            co = "checkout";
+            d = "diff";
 
-        # ----------------------------------------------------------------------------
-        # Core
-        # ----------------------------------------------------------------------------
-        core = {
+            # Commits
+            ca = "commit -am";
+            fuck = "commit --amend -m";
+
+            # Push/Pull shortcuts
+            pl = "!git pull origin $(git rev-parse --abbrev-ref HEAD)";
+            ps = "!git push origin $(git rev-parse --abbrev-ref HEAD)";
+
+            # Visual history
+            hist = ''log --pretty=format:"%Cgreen%h %Creset%cd %Cblue[%cn] %Creset%s%C(yellow)%d%C(reset)" --graph --date=relative --decorate --all'';
+            llog = ''log --graph --name-status --pretty=format:"%C(red)%h %C(reset)(%cd) %C(green)%an %Creset%s %C(yellow)%d%Creset" --date=relative'';
+
+            # Interactive (requires fzf/peco)
+            af = "!git add $(git ls-files -m -o --exclude-standard | fzf -m)";
+            df = "!git hist | peco | awk '{print $2}' | xargs -I {} git diff {}^ {}";
+          } // cfg.extraAliases;
+
+          # ──── Core Settings ─────────────────────────────────────────────
+          core = {
           editor = cfg.editor;
           whitespace = "fix,-indent-with-non-tab,trailing-space,cr-at-eol";
         } // lib.optionalAttrs cfg.delta.enable {
           pager = "${pkgs.delta}/bin/delta";
         };
 
-        # ----------------------------------------------------------------------------
-        # Branch and merge configuration
-        # ----------------------------------------------------------------------------
-        init = {
+          # ──── Branch and Merge ─────────────────────────────────────────
+          init = {
           defaultBranch = "main";
         };
 
-        pull = {
-          ff = "only";  # Fast-forward only, avoid automatic merges
-        };
+          pull = {
+            ff = "only";
+          };
 
-        push = {
-          autoSetupRemote = "true";
-          default = "current";
-        };
+          push = {
+            autoSetupRemote = "true";
+            default = "current";
+          };
 
-        # ----------------------------------------------------------------------------
-        # URL rewriting: HTTPS → SSH (never ask for password again)
-        # ----------------------------------------------------------------------------
-        "url \"git@github.com:\"" = {
-          insteadOf = "https://github.com/";
-        };
+          # ──── URL Rewriting: HTTPS → SSH ──────────────────────────────
+          "url \"git@github.com:\"" = {
+            insteadOf = "https://github.com/";
+          };
 
-        merge = {
-          conflictstyle = "diff3";  # Show common ancestor in conflicts
-          stat = "true";
-        };
+          merge = {
+            conflictstyle = "diff3";
+            stat = "true";
+          };
 
-        rebase = {
-          autoSquash = "true";
-          autoStash = "true";  # Auto stash before rebase
-        };
+          rebase = {
+            autoSquash = "true";
+            autoStash = "true";
+          };
 
-        diff = {
-          colorMoved = "default";
-        };
+          diff = {
+            colorMoved = "default";
+          };
 
-        rerere = {
-          enabled = "true";      # Remember conflict resolutions
-          autoupdate = "true";
-        };
+          rerere = {
+            enabled = "true";
+            autoupdate = "true";
+          };
 
-        # ----------------------------------------------------------------------------
-        # User (if configured)
-        # ----------------------------------------------------------------------------
-        user = lib.optionalAttrs (cfg.userName != "") {
+          # ──── User Identity ─────────────────────────────────────────────
+          user = lib.optionalAttrs (cfg.userName != "") {
           name = cfg.userName;
         } // lib.optionalAttrs (cfg.userEmail != "") {
           email = cfg.userEmail;
@@ -225,10 +200,8 @@ in
         };
       }
 
-      # ----------------------------------------------------------------------------
-      # Delta (enhanced pager) - only if enabled
-      # ----------------------------------------------------------------------------
-      // lib.optionalAttrs cfg.delta.enable {
+        # ──── Delta: Enhanced Diff Pager ────────────────────────────────
+        // lib.optionalAttrs cfg.delta.enable {
         delta = {
           features = "unobtrusive-line-numbers decorations";
           navigate = "true";
@@ -256,10 +229,8 @@ in
         };
       }
 
-      # ----------------------------------------------------------------------------
-      # GPG - only if enabled
-      # ----------------------------------------------------------------------------
-      // lib.optionalAttrs cfg.gpg.enable {
+        # ──── GPG Commit Signing ───────────────────────────────────────
+        // lib.optionalAttrs cfg.gpg.enable {
         commit = {
           gpgSign = "true";
         };
@@ -277,10 +248,8 @@ in
         };
       }
 
-      # ----------------------------------------------------------------------------
-      # Git LFS - only if enabled
-      # ----------------------------------------------------------------------------
-      // lib.optionalAttrs cfg.lfs.enable {
+        # ──── Git LFS ─────────────────────────────────────────────────
+        // lib.optionalAttrs cfg.lfs.enable {
         "filter-lfs" = {
           clean = "git-lfs clean -- %f";
           process = "git-lfs filter-process";
@@ -290,14 +259,13 @@ in
       }
     );
 
-    # Global gitignore
-    xdg.configFile."${ignoreFile}".text = 
-      lib.concatStringsSep "\n" cfg.ignorePatterns;
+      # ──── Global Gitignore ───────────────────────────────────────────
+      xdg.configFile."${ignoreFile}".text =
+        lib.concatStringsSep "\n" cfg.ignorePatterns;
     })
+
+    # === Personal Settings ===
     {
-      # ----------------------------------------------------------------------------
-      # Personal Settings
-      # ----------------------------------------------------------------------------
       modules.terminal.software.git = {
         enable = true;
         userName = "Roberto Flores";
