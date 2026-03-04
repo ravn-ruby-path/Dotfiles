@@ -1,9 +1,6 @@
-# GitHub CLI with environment-based config and shell aliases
-#
-# Documentation: docs/src/content/docs/github-cli.mdx
-# Used by:    modules/hm/programs/terminal/software/default.nix
-# Depends on: none
-# ----------------------------------------------------------------------------
+# ═══════════════════════════════════════════════════════════════
+# 🐙 GITHUB CLI - ENVIRONMENT-BASED CONFIG AND SHELL ALIASES
+# ═══════════════════════════════════════════════════════════════
 {
   config,
   lib,
@@ -12,39 +9,38 @@
 }:
 
 let
-  # Customizable configuration
   cfg = config.modules.terminal.software.gh;
 in
 {
-  # Configurable module options
+  # ──── Options ────────────────────────────────────────────────────
   options.modules.terminal.software.gh = {
     enable = lib.mkEnableOption "GitHub CLI (gh)";
-    
-    # Editor for opening files (e.g. when editing PRs)
+
+    # === Editor ===
     editor = lib.mkOption {
       type = lib.types.str;
-      default = "nano"; # Safe default
+      default = "nano";
       description = "Default editor for gh";
       example = "nvim";
     };
-    
-    # Browser for opening links
+
+    # === Browser ===
     browser = lib.mkOption {
       type = lib.types.str;
-      default = ""; # Use system default
+      default = "";
       description = "Browser for opening GitHub links";
       example = "firefox";
     };
-    
-    # GitHub username
+
+    # === Identity ===
     username = lib.mkOption {
       type = lib.types.str;
       default = "";
       description = "Your GitHub username";
       example = "linuxmobile";
     };
-    
-    # Git protocol (https or ssh)
+
+    # === Git Protocol ===
     gitProtocol = lib.mkOption {
       type = lib.types.enum [ "https" "ssh" ];
       default = "https";
@@ -52,34 +48,33 @@ in
     };
   };
 
+  # ──── Configuration ─────────────────────────────────────────────────
   config = lib.mkMerge [
     (lib.mkIf cfg.enable {
-    # Install the gh package
-    home.packages = with pkgs; [
-      gh
-    ];
+      # ──── Packages ────────────────────────────────────────────
+      home.packages = with pkgs; [
+        gh
+      ];
 
-    # Environment variables for gh configuration
-    # (instead of config.yml which blocks authentication)
-    home.sessionVariables = {
-      GH_EDITOR = cfg.editor;
-      GH_PAGER = "less -FR";
-    } // lib.optionalAttrs (cfg.browser != "") {
-      GH_BROWSER = cfg.browser;
-    };
+      # ──── Session Variables ──────────────────────────────────
+      home.sessionVariables = {
+        GH_EDITOR = cfg.editor;
+        GH_PAGER = "less -FR";
+      } // lib.optionalAttrs (cfg.browser != "") {
+        GH_BROWSER = cfg.browser;
+      };
 
-    # Useful aliases for gh (works in all shells: fish, zsh, bash)
-    home.shellAliases = {
-      ghco = "gh pr checkout";     # ghco <pr-number> - checkout a PR
-      ghpv = "gh pr view";         # ghpv - view current PR
-      ghrv = "gh repo view";       # ghrv - view current repo
-      ghis = "gh issue status";    # ghis - issue status
-    };
+      # ──── Shell Aliases ───────────────────────────────────────
+      home.shellAliases = {
+        ghco = "gh pr checkout";
+        ghpv = "gh pr view";
+        ghrv = "gh repo view";
+        ghis = "gh issue status";
+      };
     })
+
+    # === Personal Settings ===
     {
-      # ----------------------------------------------------------------------------
-      # Personal Settings
-      # ----------------------------------------------------------------------------
       modules.terminal.software.gh = {
         enable = true;
         editor = "nano";
