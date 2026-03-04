@@ -59,7 +59,8 @@ sys-deploy: ## Total sync (doctor + add + commit + push + apply)
 	@printf "$(DIM)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
 	@printf "  • verify no errors after deploy: $(BLUE)make log-err$(NC)\n"
 	@printf "  • check what was committed: $(BLUE)make git-log$(NC)\n"
-	@printf "  • list new generation: $(BLUE)make gen-list$(NC)\n\n"
+	@printf "  • list new generation: $(BLUE)make gen-list$(NC)\n"
+	@printf "  $(DIM)hint: run hyde-shell reload to apply shell/theme changes$(NC)\n\n"
 
 # ═══════════════════════════════════════════════════════════════
 # 🔄 SYS-APPLY - Build and activate new system configuration
@@ -80,14 +81,14 @@ endif
 # ──── Apply Core: Internal target — callers own the display ──
 sys-apply-core:
 	@$(EXEC) sudo nixos-rebuild switch $(NIX_OPTS) --flake $(FLAKE_DIR)#$(HOSTNAME)
-	@printf "$(DIM)  hint: run hyde-shell reload to apply shell/theme changes$(NC)\n"
 ifndef EMBEDDED
 	@printf "\n$(GREEN)  ✓ done$(NC)\n"
 	@printf "\n$(YELLOW)📋 Quick Actions:$(NC)\n"
 	@printf "$(DIM)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
 	@printf "  • verify no errors: $(BLUE)make log-err$(NC)\n"
 	@printf "  • check new generation: $(BLUE)make gen-list$(NC)\n"
-	@printf "  • rollback if needed: $(BLUE)make gen-rollback$(NC)\n\n"
+	@printf "  • rollback if needed: $(BLUE)make gen-rollback$(NC)\n"
+	@printf "  $(DIM)hint: run hyde-shell reload to apply shell/theme changes$(NC)\n\n"
 endif
 
 # ═══════════════════════════════════════════════════════════════
