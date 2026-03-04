@@ -60,7 +60,8 @@ sys-deploy: ## Total sync (doctor + add + commit + push + apply)
 	@printf "  • verify no errors after deploy: $(BLUE)make log-err$(NC)\n"
 	@printf "  • check what was committed: $(BLUE)make git-log$(NC)\n"
 	@printf "  • list new generation: $(BLUE)make gen-list$(NC)\n"
-	@printf "  $(DIM)hint: run hyde-shell reload to apply shell/theme changes$(NC)\n\n"
+	@printf "\n"
+	@printf "$(CYAN)  hint: run hyde-shell reload to apply shell/theme changes$(NC)\n\n"
 
 # ═══════════════════════════════════════════════════════════════
 # 🔄 SYS-APPLY - Build and activate new system configuration
