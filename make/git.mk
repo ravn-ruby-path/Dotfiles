@@ -159,6 +159,7 @@ endif
 		printf "\n\n"; \
 		if [ "$$STAGED" -eq 0 ] && [ "$$UNSTAGED" -eq 0 ] && [ "$$UNTRACKED" -eq 0 ]; then \
 			printf "  $(GREEN)✓ nothing to commit — working tree clean$(NC)\n"; \
+			printf "\n"; \
 		else \
 			if [ "$$STAGED" -gt 0 ]; then \
 				printf "  $(GREEN)staged:$(NC)    $$STAGED file(s)\n"; \
