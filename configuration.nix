@@ -6,8 +6,7 @@
   pkgs,
   lib,
   ...
-}:
-{
+}: {
   # ═══════════════════════════════════════════════════════════════
   # 📥 IMPORTS - MODULE AND HARDWARE DEPENDENCIES
   # ═══════════════════════════════════════════════════════════════
@@ -26,15 +25,13 @@
   home-manager = {
     useGlobalPkgs = true;
     useUserPackages = true;
-    extraSpecialArgs = { inherit inputs; };
-    users."ravn" =
-      { ... }:
-      {
-        imports = [
-          inputs.hydenix.homeModules.default
-          ./modules/hm
-        ];
-      };
+    extraSpecialArgs = {inherit inputs;};
+    users."ravn" = {...}: {
+      imports = [
+        inputs.hydenix.homeModules.default
+        ./modules/hm
+      ];
+    };
   };
 
   # ═══════════════════════════════════════════════════════════════
@@ -71,7 +68,7 @@
       dns = lib.mkForce "default";
 
       # ──── DNS Nameservers: Override DHCP-provided servers ─────────────
-      insertNameservers = [ "1.1.1.1" "1.0.0.1" "9.9.9.9" ];
+      insertNameservers = ["1.1.1.1" "1.0.0.1" "9.9.9.9"];
 
       wifi.powersave = false;
       ethernet.macAddress = "preserve";
@@ -110,12 +107,12 @@
       "9.9.9.9"
     ];
 
-    search = [ ];
+    search = [];
 
     firewall = {
       enable = true;
-      allowedTCPPorts = [ ];
-      allowedUDPPorts = [ ];
+      allowedTCPPorts = [];
+      allowedUDPPorts = [];
 
       # ──── ISP DNS Blocker: Reject queries to ISP nameservers ──────────
       extraCommands = ''
@@ -145,12 +142,12 @@
   # ═══════════════════════════════════════════════════════════════
   # 🔧 SYSTEMD-RESOLVED - CLOUDFLARE DNS PRIORITY
   # ═══════════════════════════════════════════════════════════════
-  
+
   services.resolved = {
     enable = true;
     dnssec = "allow-downgrade";
-    domains = [ "~." ];
-    fallbackDns = [ "8.8.8.8" "8.8.4.4" ];
+    domains = ["~."];
+    fallbackDns = ["8.8.8.8" "8.8.4.4"];
 
     extraConfig = ''
       DNS=1.1.1.1 1.0.0.1 9.9.9.9
@@ -171,12 +168,12 @@
   # ═══════════════════════════════════════════════════════════════
   # 🔄 SYSTEMD SERVICE - FORCE DNS ON BOOT
   # ═══════════════════════════════════════════════════════════════
-  
+
   systemd.services.force-dns-override = {
     description = "Force Cloudflare DNS on network interface";
-    after = [ "network-online.target" "systemd-resolved.service" ];
-    wants = [ "network-online.target" ];
-    wantedBy = [ "multi-user.target" ];
+    after = ["network-online.target" "systemd-resolved.service"];
+    wants = ["network-online.target"];
+    wantedBy = ["multi-user.target"];
 
     serviceConfig = {
       Type = "oneshot";
@@ -205,7 +202,7 @@
   # ═══════════════════════════════════════════════════════════════
   # ⚡ KERNEL OPTIMIZATIONS - TCP/BBR NETWORK TUNING
   # ═══════════════════════════════════════════════════════════════
-  
+
   boot.kernel.sysctl = {
     # ──── TCP Buffer Sizes ───────────────────────────────────────────
     "net.core.rmem_max" = 16777216;
@@ -220,7 +217,7 @@
     # ──── Latency Reduction ─────────────────────────────────────────
     "net.ipv4.tcp_fastopen" = 3;
     "net.ipv4.tcp_slow_start_after_idle" = 0;
-    
+
     # Optimizaciones para alta latencia
     "net.ipv4.tcp_mtu_probing" = 1;
     "net.ipv4.tcp_timestamps" = 1;
@@ -237,7 +234,7 @@
   # ═══════════════════════════════════════════════════════════════
   # 📦 SYSTEM PACKAGES - DEVELOPER AND NETWORK TOOLS
   # ═══════════════════════════════════════════════════════════════
-  
+
   environment.systemPackages = with pkgs; [
     nodejs_22
     corepack_22
@@ -274,12 +271,12 @@
   # ═══════════════════════════════════════════════════════════════
   # 📊 NETWORK QUALITY MONITOR - HOURLY DIAGNOSTICS
   # ═══════════════════════════════════════════════════════════════
-  
+
   systemd.services.network-quality-monitor = {
     description = "Network quality monitor";
-    after = [ "network-online.target" ];
-    wants = [ "network-online.target" ];
-    
+    after = ["network-online.target"];
+    wants = ["network-online.target"];
+
     serviceConfig = {
       Type = "oneshot";
       ExecStart = pkgs.writeShellScript "check-network" ''
@@ -291,10 +288,10 @@
       '';
     };
   };
-  
+
   # ──── Timer: Run every hour ─────────────────────────────────────────
   systemd.timers.network-quality-monitor = {
-    wantedBy = [ "timers.target" ];
+    wantedBy = ["timers.target"];
     timerConfig = {
       OnBootSec = "5min";
       OnUnitActiveSec = "1h";
