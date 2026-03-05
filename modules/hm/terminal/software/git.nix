@@ -31,6 +31,13 @@ in {
       example = "juan@example.com";
     };
 
+    githubUser = lib.mkOption {
+      type = lib.types.str;
+      default = "";
+      description = "Your GitHub username (sets github.user in gitconfig)";
+      example = "ravn-ruby-path";
+    };
+
     # === Editor and Tools ===
     editor = lib.mkOption {
       type = lib.types.str;
@@ -203,6 +210,11 @@ in {
             // lib.optionalAttrs (cfg.gpg.enable && cfg.gpg.signingKey != "") {
               signingKey = cfg.gpg.signingKey;
             };
+
+          # ──── GitHub Identity ───────────────────────────────────────────
+          github = lib.optionalAttrs (cfg.githubUser != "") {
+            user = cfg.githubUser;
+          };
         }
         # ──── Delta: Enhanced Diff Pager ────────────────────────────────
         // lib.optionalAttrs cfg.delta.enable {
@@ -275,6 +287,7 @@ in {
         enable = true;
         userName = "Roberto Flores";
         userEmail = "25asab015@ujmd.edu.sv";
+        githubUser = "ravn-ruby-path";
         editor = "nvim";
         delta.enable = true;
         delta.sideBySide = true;
