@@ -38,6 +38,13 @@ in {
       example = "ravn-ruby-path";
     };
 
+    worktreesHome = lib.mkOption {
+      type = lib.types.str;
+      default = config.home.homeDirectory + "/Work";
+      description = "Base directory where git worktrees are created (exported as WORKTREES_HOME)";
+      example = "/home/user/Projects";
+    };
+
     # === Editor and Tools ===
     editor = lib.mkOption {
       type = lib.types.str;
@@ -111,6 +118,12 @@ in {
   # ──── Configuration ─────────────────────────────────────────────────
   config = lib.mkMerge [
     (lib.mkIf cfg.enable {
+      # ──── Session Variables ──────────────────────────────────
+      home.sessionVariables = {
+        WORKTREES_HOME = cfg.worktreesHome;
+        BARE_HOME = config.home.homeDirectory + "/.local/share/git-bare";
+      };
+
       # ──── Packages ────────────────────────────────────────────
       home.packages = with pkgs;
         [
