@@ -343,13 +343,14 @@ git push
 | `makefile` | Makefile targets | `dev` via PR |
 | `scripts` | Shell scripts + docs | `dev` via PR |
 | `astro-site` | Documentation site | `dev` via PR |
-| `minimal-installation` | Minimal snapshot | `dev` via PR |
+| `minimal-installation` | Minimal system snapshot — **DO NOT MODIFY** | — |
 
 **Rules:**
 - Feature work happens in topic branches (`nix`, `scripts`, `makefile`, etc.)
 - All merges to `dev` go through a Pull Request with detailed description
 - `main` only receives merges from `dev` as versioned releases
 - After merging to `dev`, sync all topic branches: `git pull --rebase origin dev`
+- **`minimal-installation` must never be modified** — it is a protected snapshot of the minimum viable system. Adding packages or config to it defeats its purpose. Users who want the full system should use `main`.
 
 ### Committing changes
 
@@ -371,19 +372,20 @@ make git-push
 
 After merging PRs to `dev`, update all topic branches:
 ```bash
-for branch in scripts nix makefile astro-site minimal-installation; do
+for branch in scripts nix makefile astro-site; do
   git -C ~/Work/Dotfiles/$branch pull --rebase origin dev
   git -C ~/Work/Dotfiles/$branch push
 done
 ```
 
-> **Note:** `minimal-installation` may have conflicts in `README.md`. Resolve by keeping the branch's own version with `git checkout --theirs README.md`.
+> **Note:** `minimal-installation` is **excluded** from this sync loop on purpose. It is a protected branch and must not receive changes from `dev`.
 
 ## Agent Responsibilities for This Workflow
 
 When working on this project, AI agents must:
 
 - **Never modify `main` directly** — only via PR from `dev`
+- **Never modify `minimal-installation`** — it is a protected branch that provides a lightweight, minimal system install. It must stay lean by design. Users wanting the full system must use `main` instead.
 - **Work in the correct worktree** for the changes being made (e.g. `.nix` files → `nix/` worktree)
 - **Create atomic commits** — one logical change per commit, with conventional commit message
 - **Open detailed PRs** to `dev` with description of what changed and why
