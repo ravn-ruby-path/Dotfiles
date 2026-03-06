@@ -19,7 +19,7 @@ else
   EXEC =
 endif
 
-.PHONY: git-add git-commit git-add-commit git-push git-status git-diff git-log
+.PHONY: git-add git-commit git-add-commit git-push git-status git-diff git-log git-setup
 
 # ═══════════════════════════════════════════════════════════════
 # 💾 GIT-ADD - Stage all modified/new files for commit
@@ -238,3 +238,40 @@ endif
 		printf "$(YELLOW)  ⚠  not a git repository$(NC)\n"; \
 	fi
 	@printf "\n"
+
+# ═══════════════════════════════════════════════════════════════
+# 🚀 GIT-SETUP - Clone a repo and create all worktrees ready to push
+# ═══════════════════════════════════════════════════════════════
+# ──── Setup: bare clone + all worktrees + upstream tracking ──
+# ──── Usage: make git-setup REPO=git@github.com:user/repo.git ─
+#
+# Locations (can be overridden via environment variables):
+#   Bare objects:  $$BARE_HOME/<repo>       (default: ~/.local/share/git-bare/<repo>)
+#   Worktrees:     $$WORKTREES_HOME/<repo>  (default: ~/Work/<repo>)
+git-setup: ## Clone a repo as bare + create all worktrees with upstream (use REPO=url)
+	@printf "\n"
+	@printf "$(CYAN)🚀 git-setup · bare clone + worktrees$(NC)\n"
+	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
+	@if [ -z "$(REPO)" ]; then \
+		printf "$(RED)  ✗ missing required argument$(NC)\n\n"; \
+		printf "  usage:  $(BLUE)make git-setup REPO=git@github.com:user/repo.git$(NC)\n\n"; \
+		printf "  override locations:\n"; \
+		printf "    $(DIM)BARE_HOME$(NC)       bare objects dir   (default: $(DIM)~/.local/share/git-bare$(NC))\n"; \
+		printf "    $(DIM)WORKTREES_HOME$(NC)  worktrees base dir (default: $(DIM)~/Work$(NC))\n\n"; \
+		exit 1; \
+	fi
+	@SCRIPT=$$(command -v git-bare-clone 2>/dev/null || echo ""); \
+	if [ -z "$$SCRIPT" ]; then \
+		printf "$(RED)  ✗ git-bare-clone not found in PATH$(NC)\n\n"; \
+		printf "  Install it via Home Manager (modules.terminal.software.git)\n"; \
+		printf "  or place it manually in a directory on your PATH.\n\n"; \
+		exit 1; \
+	fi
+	@git-bare-clone $(REPO)
+	@printf "\n$(GREEN)  ✓ done$(NC)\n"
+	@REPO_NAME=$$(basename "$(REPO)" .git); \
+	WTHOME=$${WORKTREES_HOME:-$$HOME/Work}; \
+	printf "\n$(YELLOW)📋 Quick Actions:$(NC)\n"; \
+	printf "$(DIM)────────────────────────────────────────────────────────────────────────────────$(NC)\n"; \
+	printf "  • enter a worktree:  $(BLUE)cd $$WTHOME/$$REPO_NAME/<branch>$(NC)\n"; \
+	printf "  • check git status:  $(BLUE)make git-status$(NC)\n\n"
