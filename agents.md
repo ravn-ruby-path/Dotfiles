@@ -370,7 +370,13 @@ make git-push
 
 ### Syncing all branches from dev
 
-After merging PRs to `dev`, update all topic branches:
+After merging PRs to `dev`, update all topic branches using the Makefile target:
+```bash
+cd ~/Work/Dotfiles/makefile
+make git-sync REPO=Dotfiles
+```
+
+Or manually if needed:
 ```bash
 for branch in scripts nix makefile astro-site; do
   git -C ~/Work/Dotfiles/$branch pull --rebase origin dev
@@ -378,7 +384,7 @@ for branch in scripts nix makefile astro-site; do
 done
 ```
 
-> **Note:** `minimal-installation` is **excluded** from this sync loop on purpose. It is a protected branch and must not receive changes from `dev`.
+> **Note:** `minimal-installation` is **excluded** from both the Makefile target and the manual loop. It is a protected branch and must not receive changes from `dev`.
 
 ## Agent Responsibilities for This Workflow
 
