@@ -12,11 +12,6 @@
   ...
 }: let
   cfg = config.modules.terminal.software.scripts;
-  # Path to the scripts/bin directory relative to this flake
-  scriptsSrc = builtins.path {
-    path = ../../../../../scripts/bin;
-    name = "git-workflow-scripts";
-  };
 in {
   # ──── Options ────────────────────────────────────────────────────
   options.modules.terminal.software.scripts = {
@@ -29,13 +24,13 @@ in {
       home.file = {
         # ──── git-bare-clone ────────────────────────────────────
         ".local/bin/git-bare-clone" = {
-          source = "${scriptsSrc}/git-bare-clone";
+          source = ../../../../bin/git-bare-clone;
           executable = true;
         };
 
         # ──── git-create-worktree ────────────────────────────────
         ".local/bin/git-create-worktree" = {
-          source = "${scriptsSrc}/git-create-worktree";
+          source = ../../../../bin/git-create-worktree;
           executable = true;
         };
       };
