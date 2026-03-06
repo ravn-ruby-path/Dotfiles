@@ -301,8 +301,18 @@ git-sync: ## Rebase all topic branches onto dev and push (use REPO=<name>)
 	@WTHOME=$${WORKTREES_HOME:-$$HOME/Work}; \
 	REPO_DIR="$$WTHOME/$(REPO)"; \
 	if [ ! -d "$$REPO_DIR" ]; then \
-		printf "$(RED)  ✗ directory not found: $$REPO_DIR$(NC)\n\n"; \
-		printf "  run $(BLUE)make git-setup REPO=<url>$(NC) first\n\n"; \
+		printf "$(RED)  ✗ worktrees directory not found$(NC)\n\n"; \
+		printf "  looked in:  $(DIM)$$REPO_DIR$(NC)\n\n"; \
+		if [ -n "$$WORKTREES_HOME" ]; then \
+			printf "  $(YELLOW)WORKTREES_HOME$(NC) is set to $(DIM)$$WORKTREES_HOME$(NC)\n"; \
+			printf "  make sure $(BLUE)$(REPO)$(NC) worktrees exist there\n\n"; \
+		else \
+			printf "  $(DIM)WORKTREES_HOME$(NC) is not set — defaulting to $(DIM)~/Work$(NC)\n\n"; \
+			printf "  if your worktrees are elsewhere, override:\n"; \
+			printf "    $(BLUE)WORKTREES_HOME=<path> make git-sync REPO=$(REPO)$(NC)\n\n"; \
+			printf "  if the repo is not cloned yet:\n"; \
+			printf "    $(BLUE)make git-setup REPO=git@github.com:<user>/$(REPO).git$(NC)\n\n"; \
+		fi; \
 		exit 1; \
 	fi; \
 	FAILED=""; \
