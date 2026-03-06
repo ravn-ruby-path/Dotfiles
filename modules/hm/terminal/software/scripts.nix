@@ -26,12 +26,14 @@ in {
         ".local/bin/git-bare-clone" = {
           source = ../../../../bin/git-bare-clone;
           executable = true;
+          force = true;
         };
 
         # ──── git-create-worktree ────────────────────────────────
         ".local/bin/git-create-worktree" = {
           source = ../../../../bin/git-create-worktree;
           executable = true;
+          force = true;
         };
       };
     })
