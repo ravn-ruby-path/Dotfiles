@@ -186,6 +186,211 @@ editor = lib.mkOption { ... };
 - **Consistency**: Check existing files for patterns
 - **Updates**: This guide should be updated as standards evolve
 
+---
+
+# Git Worktree Workflow
+
+This section documents the bare-clone + worktree workflow used in this project. Any agent or contributor setting up the repo on a new machine **must** follow this workflow.
+
+## Overview
+
+Instead of a standard `git clone`, this project uses a **bare repository** pattern:
+
+- Git objects are stored in `$BARE_HOME/<repo>/` — never touched directly
+- Each branch is a separate directory (worktree) in `$WORKTREES_HOME/<repo>/`
+- All worktrees share the same git objects, no need for `git stash` or `git checkout` to switch branches
+
+```
+~/.local/share/git-bare/Dotfiles/   ← bare objects (invisible)
+~/Work/Dotfiles/
+    ├── main/                        ← worktree (branch: main)
+    ├── dev/                         ← worktree (branch: dev)
+    ├── nix/                         ← worktree (branch: nix)
+    ├── makefile/                    ← worktree (branch: makefile)
+    ├── scripts/                     ← worktree (branch: scripts)
+    └── ...
+```
+
+## Environment Variables
+
+Set automatically by Home Manager (`modules.terminal.software.git`):
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `WORKTREES_HOME` | `~/Work` | Base directory for all worktrees |
+| `BARE_HOME` | `~/.local/share/git-bare` | Base directory for bare repos |
+
+Override in shell or per-command:
+```bash
+WORKTREES_HOME=~/Projects git-bare-clone git@github.com:user/repo.git
+```
+
+## Tools
+
+### `git-bare-clone` — Bootstrap a repo
+
+Clones a repository as bare and creates all worktrees in one command.
+
+**Usage:**
+```bash
+git-bare-clone git@github.com:ravn-ruby-path/Dotfiles.git
+```
+
+**What it does (5 steps):**
+1. Clones bare repo to `$BARE_HOME/<repo>/`
+2. Configures `fetch = +refs/heads/*:refs/remotes/origin/*`
+3. Fetches all remote tracking refs (`origin/*`)
+4. Creates `$WORKTREES_HOME/<repo>/` with `.git` pointer
+5. Creates one worktree per remote branch, each with upstream configured
+
+**Flags:**
+```bash
+-w, --worktrees-dir <path>   Override worktrees base directory (one-off)
+-v, --verbose                Debug output (set -x)
+```
+
+**Guards:**
+- Fails if `$BARE_HOME/<repo>` already exists
+- Fails if `$WORKTREES_HOME/<repo>` already exists
+
+---
+
+### `git-create-worktree` — Add a single worktree
+
+Creates one worktree from an existing or new branch, with upstream tracking.
+
+**Usage:**
+```bash
+# From inside the worktrees directory:
+cd ~/Work/Dotfiles
+
+# Existing branch (no upstream creation):
+git-create-worktree -N -B <branch> -b <branch> <folder-name>
+
+# New branch based on main:
+git-create-worktree -b my-feature my-feature
+
+# New branch with custom base:
+git-create-worktree -B dev -b my-feature my-feature
+```
+
+**Flags:**
+```bash
+-b, --branch <name>     Branch name to create or checkout
+-B, --base <name>       Base branch for new branches (default: origin/main)
+-N, --no-create-upstream  Skip creating/setting upstream (use for existing branches)
+-v, --verbose           Debug output
+```
+
+**Important:** Always run from the worktrees root directory (e.g. `~/Work/Dotfiles/`), not from inside a worktree.
+
+---
+
+### `make git-setup` — One-command bootstrap via Makefile
+
+Wraps `git-bare-clone` as a Makefile target for use from within the project.
+
+**Usage:**
+```bash
+cd ~/Work/Dotfiles/makefile
+make git-setup REPO=git@github.com:user/repo.git
+```
+
+**Override locations:**
+```bash
+make git-setup REPO=... WORKTREES_HOME=~/Projects BARE_HOME=~/.git-bare
+```
+
+## Standard Development Workflow
+
+### Setting up a new machine
+
+```bash
+# 1. Clone the Dotfiles (only manual step)
+git-bare-clone git@github.com:ravn-ruby-path/Dotfiles.git
+
+# 2. Apply Home Manager to get tools + session vars in PATH
+cd ~/Work/Dotfiles/nix
+home-manager switch --flake .
+
+# 3. From now on, bootstrap any repo with one command
+make -C ~/Work/Dotfiles/makefile git-setup REPO=git@github.com:user/other-repo.git
+```
+
+### Daily workflow
+
+```bash
+# Work on a branch — each branch is its own directory
+cd ~/Work/Dotfiles/nix      # work on nix config
+cd ~/Work/Dotfiles/makefile # work on makefile targets
+cd ~/Work/Dotfiles/dev      # integration branch
+
+# Standard git commands work normally in each worktree
+git status
+git pull
+git add .
+git commit -m "feat: ..."
+git push
+```
+
+### Branch strategy
+
+| Branch | Purpose | Merges to |
+|---|---|---|
+| `main` | Stable releases only | — |
+| `dev` | Integration branch | `main` (via release PR) |
+| `nix` | NixOS/HM modules | `dev` via PR |
+| `makefile` | Makefile targets | `dev` via PR |
+| `scripts` | Shell scripts + docs | `dev` via PR |
+| `astro-site` | Documentation site | `dev` via PR |
+| `minimal-installation` | Minimal snapshot | `dev` via PR |
+
+**Rules:**
+- Feature work happens in topic branches (`nix`, `scripts`, `makefile`, etc.)
+- All merges to `dev` go through a Pull Request with detailed description
+- `main` only receives merges from `dev` as versioned releases
+- After merging to `dev`, sync all topic branches: `git pull --rebase origin dev`
+
+### Committing changes
+
+Use atomic commits per logical change:
+```bash
+# Stage and commit with descriptive conventional message
+git add <files>
+git commit -m "feat(scope): short description
+
+- Detail 1
+- Detail 2"
+
+# Or use the Makefile shortcut (timestamped commit)
+make git-add-commit
+make git-push
+```
+
+### Syncing all branches from dev
+
+After merging PRs to `dev`, update all topic branches:
+```bash
+for branch in scripts nix makefile astro-site minimal-installation; do
+  git -C ~/Work/Dotfiles/$branch pull --rebase origin dev
+  git -C ~/Work/Dotfiles/$branch push
+done
+```
+
+> **Note:** `minimal-installation` may have conflicts in `README.md`. Resolve by keeping the branch's own version with `git checkout --theirs README.md`.
+
+## Agent Responsibilities for This Workflow
+
+When working on this project, AI agents must:
+
+- **Never modify `main` directly** — only via PR from `dev`
+- **Work in the correct worktree** for the changes being made (e.g. `.nix` files → `nix/` worktree)
+- **Create atomic commits** — one logical change per commit, with conventional commit message
+- **Open detailed PRs** to `dev` with description of what changed and why
+- **Sync all branches** after merging to `dev`, resolving conflicts conservatively
+- **Use `make git-setup`** when bootstrapping new repos — never raw `git clone`
+- **Respect `WORKTREES_HOME`/`BARE_HOME`** — never hardcode paths
+
 ## Common Mistakes to Avoid
 
 1. **Mixed Languages**: No Spanish comments
