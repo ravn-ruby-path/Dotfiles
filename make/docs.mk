@@ -55,7 +55,7 @@ endif
 		print_cat("Cleanup & Optimization", "sys-gc sys-purge sys-optimize sys-clean-result sys-fix-store"); \
 		print_cat("Updates & Flakes", "upd-all upd-nixpkgs upd-hydenix upd-input upd-ai upd-diff upd-upgrade upd-show upd-check"); \
 		print_cat("Generations & Rollback", "gen-list gen-rollback gen-rollback-commit gen-diff gen-diff-current gen-sizes gen-current"); \
-		print_cat("Git Operations", "git-setup git-add git-commit git-add-commit git-push git-status git-diff git-log"); \
+		print_cat("Git Operations", "git-setup git-sync git-add git-commit git-add-commit git-push git-status git-diff git-log"); \
 		print_cat("Diagnostics & Logs", "sys-status log-net log-net-enhanced log-watch log-boot log-err log-svc"); \
 		print_cat("Development Tools", "dev-hosts dev-search dev-search-inst dev-repl dev-shell dev-vm dev-size"); \
 		print_cat("Formatting & Linting", "fmt-check fmt-lint fmt-tree fmt-diff"); \
