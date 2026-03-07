@@ -67,6 +67,209 @@ SANDBOX = "false";
 
 ## Specific Rules by File Type
 
+### Bash Scripts (.sh, bin/ scripts)
+
+Every bash script in this project must follow the visual and structural language established in `git-setup.sh` and `bin/git-bare-clone`. This ensures all scripts are immediately recognizable as coming from the same author.
+
+#### 1. ASCII Art Banner
+
+Every script must open with a box-framed ASCII art banner using the `╭─╮` / `│` / `╰─╯` box-drawing characters. The banner includes:
+- The script name in block letters (figlet-style)
+- A one-line subtitle describing the script's purpose
+- A blank padding line at top and bottom inside the box
+
+```bash
+#!/usr/bin/env bash
+# ╭──────────────────────────────────────────────────────────────────────────────╮
+# │                                                                              │
+# │   ███████╗ ██████╗ ██████╗                                                  │
+# │   ██╔════╝██╔═══██╗██╔══██╗                                                 │
+# │   █████╗  ██║   ██║██████╔╝                                                 │
+# │   ██╔══╝  ██║   ██║██╔══██╗                                                 │
+# │   ██║     ╚██████╔╝██║  ██║                                                 │
+# │   ╚═╝      ╚═════╝ ╚═╝  ╚═╝                                                 │
+# │                                                                              │
+# │              Short description of what the script does                      │
+# │                                                                              │
+# ╰──────────────────────────────────────────────────────────────────────────────╯
+```
+
+#### 2. Script Bootstrap
+
+Immediately after the banner, declare the strict mode and trap:
+
+```bash
+set -Eeuo pipefail
+trap cleanup SIGINT SIGTERM ERR EXIT
+```
+
+#### 3. Section Boxes
+
+Separate all major logical blocks with `┌─┐` / `│` / `└─┘` box headers. Keep all boxes the same width (80 chars total):
+
+```bash
+# ┌──────────────────────────────────────────────────────────────────────────────┐
+# │ Configuration                                                                │
+# └──────────────────────────────────────────────────────────────────────────────┘
+```
+
+Standard sections to include (in order):
+1. `Configuration` — env vars, defaults, file paths
+2. `Colors & Styling` — color constants + Nerd Font icons
+3. `Helper Functions` — print_*, die, cleanup
+4. `Usage` — usage() function
+5. `Argument Parsing` — parse_params()
+6. `Pre-flight Checks` — guard conditions, dependency checks
+7. `Execution Steps` — main logic
+8. `Summary` — final success output
+
+#### 4. Colors
+
+Declare all colors as `readonly` immediately after `set -Eeuo pipefail`. Always use the full standard palette:
+
+```bash
+readonly RED='\033[0;31m'
+readonly GREEN='\033[0;32m'
+readonly YELLOW='\033[0;33m'
+readonly BLUE='\033[0;34m'
+readonly MAGENTA='\033[0;35m'
+readonly CYAN='\033[0;36m'
+readonly WHITE='\033[1;37m'
+readonly GRAY='\033[0;90m'
+readonly NC='\033[0m'
+```
+
+- `NC` (No Color) is always used to reset — never `NOFORMAT` or `RESET`
+- Colors are always `readonly` — never re-assigned
+- No runtime color detection via `[[ -t 2 ]]` — the palette is always defined
+
+#### 5. Nerd Font Icons
+
+Declare icons as `readonly` constants alongside colors. Use only icons from the Nerd Fonts set. Pick semantically appropriate icons for the script's domain:
+
+```bash
+# Nerd Font Icons
+readonly ICON_CHECK=""
+readonly ICON_CROSS=""
+readonly ICON_ARROW=""
+readonly ICON_WARN=""
+readonly ICON_INFO=""
+readonly ICON_GIT=""
+readonly ICON_BRANCH=""
+readonly ICON_FOLDER="󰉋"
+readonly ICON_ROCKET="󱓞"
+readonly ICON_GEAR="󰒓"
+```
+
+#### 6. Print Helper Functions
+
+Every script must define the same set of print helpers. These functions are not optional — they form the visual contract of the script:
+
+```bash
+print_header() {
+    echo ""
+    echo -e "${CYAN}╭────────────────────────────────────────────────────────────╮${NC}"
+    echo -e "${CYAN}│${NC}  ${WHITE}$1${NC}"
+    echo -e "${CYAN}╰────────────────────────────────────────────────────────────╯${NC}"
+}
+
+print_section() {
+    echo ""
+    echo -e "${MAGENTA}  $1${NC}"
+    echo -e "${GRAY}  ──────────────────────────────────────────────────────────${NC}"
+}
+
+print_step()    { echo -e "  ${GRAY}${ICON_ARROW}${NC} $1"; }
+print_success() { echo -e "  ${GREEN}${ICON_CHECK}${NC} $1"; }
+print_error()   { echo -e "  ${RED}${ICON_CROSS}${NC} $1" >&2; }
+print_warn()    { echo -e "  ${YELLOW}${ICON_WARN}${NC} $1"; }
+print_info()    { echo -e "  ${BLUE}${ICON_INFO}${NC} $1"; }
+```
+
+**Rules:**
+- `print_header` — used at script start and for the final summary
+- `print_section` — used for each numbered step or logical group
+- `print_step` — used for sub-items within a section (loops, sub-actions)
+- `print_success` / `print_error` / `print_warn` / `print_info` — used for status messages
+- `print_error` always writes to stderr (`>&2`)
+- Never use raw `echo` for user-facing messages — always use a print helper
+
+#### 7. `die` and `cleanup` Functions
+
+```bash
+die() {
+    print_error "$1"
+    exit "${2-1}"
+}
+
+cleanup() {
+    trap - SIGINT SIGTERM ERR EXIT
+}
+```
+
+- `die` uses `print_error` internally — never raw `echo`
+- `cleanup` must always be registered with `trap` at the top of the script
+
+#### 8. Numbered Execution Steps
+
+Multi-step scripts must number their steps using `print_section` with `[N/TOTAL]` notation:
+
+```bash
+# ── Step 1/5: Clone bare ──────────────────────────────────────────────────────
+print_section "${ICON_CLONE} [1/5] Cloning bare repository"
+
+# ── Step 2/5: Configure ──────────────────────────────────────────────────────
+print_section "${ICON_GEAR} [2/5] Configuring remote fetch refs"
+```
+
+- Inline comment above each `print_section` uses `# ── Step N/T: Title ─────` format
+- Total step count appears in every step (`[1/5]`, `[2/5]`, ...) — update if steps change
+- Each section ends with a `print_success` confirming the step completed
+
+#### 9. Usage Function
+
+`usage()` must use print helpers and colored output — never a plain `cat <<EOF` block:
+
+```bash
+usage() {
+    echo ""
+    echo -e "${WHITE}Usage:${NC} $(basename "${BASH_SOURCE[0]}") ${GRAY}[-h] [-v]${NC} ${CYAN}<required-arg>${NC}"
+    echo ""
+    echo -e "  Description of what the script does."
+    echo ""
+    echo -e "${WHITE}Options:${NC}"
+    echo -e "  ${CYAN}-h, --help${NC}     Print this help and exit"
+    echo -e "  ${CYAN}-v, --verbose${NC}  Print script debug info"
+    echo ""
+    exit 0
+}
+```
+
+#### 10. Final Summary
+
+Every script must end with a `print_header` summary that confirms success and shows the user what was created or changed:
+
+```bash
+print_header "${ICON_ROCKET} All done"
+echo -e "  ${CYAN}/path/to/result/${NC}"
+for item in "${items[@]}"; do
+    echo -e "  ${GREEN}${ICON_CHECK}${NC} ${WHITE}$item${NC}"
+done
+echo ""
+print_info "Next step hint for the user"
+echo ""
+```
+
+#### Visual Reference
+
+The following files serve as the canonical style reference for bash scripts:
+- [`bin/git-bare-clone`](bin/git-bare-clone) — multi-step script with numbered sections
+- [`git-setup.sh`](git-setup.sh) — comprehensive script with all helper patterns
+
+When in doubt, follow the patterns in these files exactly.
+
+---
+
 ### Nix Modules (.nix files)
 
 - **Headers**: Use ════════════════ with emojis for sections
