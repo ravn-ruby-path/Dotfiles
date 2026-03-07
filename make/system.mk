@@ -34,6 +34,10 @@ sys-deploy: ## Total sync (doctor + add + commit + push + apply)
 	@printf "\n"
 	@printf "$(CYAN)🚀 sys-deploy · doctor → git → apply$(NC)\n"
 	@printf "$(CYAN)────────────────────────────────────────────────────────────────────────────────$(NC)\n"
+	@BEHIND=$$(git rev-list --count HEAD..@{u} 2>/dev/null || echo 0); \
+	if [ "$$BEHIND" -gt 0 ]; then \
+		printf "$(YELLOW)  ⚠  branch is $$BEHIND commit(s) behind remote — consider: make git-sync$(NC)\n\n"; \
+	fi
 	@printf "\n$(DIM)  ▶ fixing permissions...$(NC)\n"
 	@$(MAKE) --no-print-directory sys-doctor EMBEDDED=1
 	@printf "\n$(DIM)  ▶ fixing git ownership...$(NC)\n"
