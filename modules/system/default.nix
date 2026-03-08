@@ -1,7 +1,7 @@
 # ═══════════════════════════════════════════════════════════════
 # 🔧 SYSTEM MODULE - CUSTOM SYSTEM-LEVEL CONFIGURATION
 # ═══════════════════════════════════════════════════════════════
-{ lib, ... }: {
+{lib, ...}: {
   imports = [];
 
   # ──── allowUnfree: gated on HM service modules that need it ──

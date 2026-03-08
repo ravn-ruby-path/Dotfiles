@@ -1,7 +1,11 @@
 # ═══════════════════════════════════════════════════════════════
 # 🏠 HOME MANAGER - USER ENVIRONMENT ENTRY POINT
 # ═══════════════════════════════════════════════════════════════
-{ config, lib, ... }: {
+{
+  config,
+  lib,
+  ...
+}: {
   imports = [
     ./terminal/default.nix
     ./services/default.nix

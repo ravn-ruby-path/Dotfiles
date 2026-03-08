@@ -1,8 +1,8 @@
 # ═══════════════════════════════════════════════════════════════
 # 🔧 SERVICES - USER SERVICES MODULE AGGREGATOR
 # ═══════════════════════════════════════════════════════════════
-{ lib, ... }: {
+{lib, ...}: {
   imports =
     # ──── Optional modules: delete the file to remove all config ─
-    (lib.optional (builtins.pathExists ./system/dropbox.nix) ./system/dropbox.nix);
+    lib.optional (builtins.pathExists ./system/dropbox.nix) ./system/dropbox.nix;
 }

@@ -4,10 +4,9 @@
 # ──── Self-contained: delete this file to remove all config ───
 # ──── Note: nixpkgs.config.allowUnfree is gated in           ───
 # ────       modules/system/default.nix via builtins.pathExists ─
-{ pkgs, ... }: {
-
+{pkgs, ...}: {
   # ──── Install Dropbox ───────────────────────────────────────
-  home.packages = [ pkgs.dropbox ];
+  home.packages = [pkgs.dropbox];
 
   # ──── Systemd User Service: Autostart on graphical login ────
   # ──── On first run: downloads and installs the Dropbox daemon
@@ -15,17 +14,17 @@
   systemd.user.services.dropbox = {
     Unit = {
       Description = "Dropbox";
-      After       = [ "graphical-session.target" ];
-      PartOf      = [ "graphical-session.target" ];
+      After = ["graphical-session.target"];
+      PartOf = ["graphical-session.target"];
     };
     Service = {
-      ExecStart  = "${pkgs.dropbox}/bin/dropbox start -i";
-      ExecStop   = "${pkgs.dropbox}/bin/dropbox stop";
-      Restart    = "on-failure";
+      ExecStart = "${pkgs.dropbox}/bin/dropbox start -i";
+      ExecStop = "${pkgs.dropbox}/bin/dropbox stop";
+      Restart = "on-failure";
       RestartSec = 1;
     };
     Install = {
-      WantedBy = [ "graphical-session.target" ];
+      WantedBy = ["graphical-session.target"];
     };
   };
 }
