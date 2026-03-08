@@ -9,6 +9,7 @@
   imports = [
     ./terminal/default.nix
     ./services/default.nix
+    ./packages/apps/default.nix
   ];
 
   # === User Packages ===
