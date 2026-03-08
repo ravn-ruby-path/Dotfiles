@@ -5,17 +5,19 @@
 # ──── Why local pkgs: hydenix creates nixpkgs externally, so  ───
 # ──── nixpkgs.config cannot be set in any NixOS module.       ───
 # ──── We instantiate our own nixpkgs with allowUnfree here.   ───
-{ pkgs, inputs, ... }:
-let
+{
+  pkgs,
+  inputs,
+  ...
+}: let
   # ──── Local nixpkgs instance with unfree packages enabled ───
   pkgsUnfree = import inputs.nixpkgs {
     inherit (pkgs) system;
     config.allowUnfree = true;
   };
-in
-{
+in {
   # ──── Install Dropbox ─────────────────────────────────────
-  home.packages = [ pkgsUnfree.dropbox ];
+  home.packages = [pkgsUnfree.dropbox];
 
   # ──── Systemd User Service: Autostart on graphical login ──
   # ──── On first run: downloads and installs the Dropbox daemon
@@ -23,8 +25,8 @@ in
   systemd.user.services.dropbox = {
     Unit = {
       Description = "Dropbox";
-      After = [ "graphical-session.target" ];
-      PartOf = [ "graphical-session.target" ];
+      After = ["graphical-session.target"];
+      PartOf = ["graphical-session.target"];
     };
     Service = {
       ExecStart = "${pkgsUnfree.dropbox}/bin/dropbox start -i";
@@ -33,7 +35,7 @@ in
       RestartSec = 1;
     };
     Install = {
-      WantedBy = [ "graphical-session.target" ];
+      WantedBy = ["graphical-session.target"];
     };
   };
 }
