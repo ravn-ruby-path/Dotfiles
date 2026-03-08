@@ -80,7 +80,5 @@ in {
 
   xdg.configFile."zed/settings.json" = {
     text = settingsJSON;
-    # Allow Zed to write back UI-changed settings without HM conflicts
-    mutable = true;
   };
 }
