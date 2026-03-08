@@ -1,8 +1,8 @@
 # ═══════════════════════════════════════════════════════════════
 # ⚙️  ZED EDITOR - WITH LSP WRAPPER
 # ═══════════════════════════════════════════════════════════════
-# ──── Wraps zed-editor so all LSPs are available in PATH ─────
-# ──── Settings written via xdg.configFile (mutable=true)  ────
+# ──── Wraps zeditor binary so all LSPs are available in PATH ─
+# ──── Settings deployed as mutable file via home.activation  ─
 {
   pkgs,
   lib,
@@ -10,26 +10,41 @@
   ...
 }: let
   # ──── LSP and tool packages ───────────────────────────────
-  lspPackages = [
-    pkgs.astro-language-server
-    pkgs.biome
-    pkgs.marksman
-    pkgs.nil
-    pkgs.nodejs
-    pkgs.oxfmt
-    pkgs.shfmt
-    pkgs.tailwindcss-language-server
-    pkgs.vue-language-server
+  lspPackages = with pkgs; [
+    astro-language-server
+    biome
+    marksman
+    nil
+    tailwindcss-language-server
+    vue-language-server
+    alejandra
+    oxfmt
+    shfmt
+    nodejs
   ];
 
-  # ──── Wrap zed-editor with LSPs in PATH ───────────────────
+  # ──── Isolated bin env to avoid conflicts ─────────────────
+  lspBinPath = pkgs.buildEnv {
+    name = "zed-lsp-env";
+    paths = lspPackages;
+    pathsToLink = ["/bin"];
+  };
+
+  # ──── Wrap zeditor; symlink remaining binaries ────────────
   zedWithLSP = pkgs.symlinkJoin {
     name = "zed-with-lsp";
     paths = [pkgs.zed-editor];
-    nativeBuildInputs = [pkgs.makeWrapper];
+    buildInputs = [pkgs.makeWrapper];
     postBuild = ''
-      wrapProgram $out/bin/zed \
-        --prefix PATH : ${lib.makeBinPath lspPackages}
+      rm -rf $out/bin
+      mkdir -p $out/bin
+      makeWrapper ${pkgs.zed-editor}/bin/zeditor $out/bin/zeditor \
+        --prefix PATH : ${lspBinPath}/bin
+      for bin in ${pkgs.zed-editor}/bin/*; do
+        if [ "$(basename $bin)" != "zeditor" ]; then
+          ln -s $bin $out/bin/$(basename $bin)
+        fi
+      done
     '';
   };
 
