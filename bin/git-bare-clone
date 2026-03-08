@@ -1,147 +1,227 @@
 #!/usr/bin/env bash
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# git-bare-clone — Clone a repo as bare and set up all worktrees with tracking
-# ═══════════════════════════════════════════════════════════════════════════════
-#
-# Bare objects are stored in:  $BARE_HOME/<repo>       (~/.local/share/git-bare/<repo>)
-# Worktrees are created in:    $WORKTREES_HOME/<repo>  (~/Work/<repo>)
-#
-# After cloning, all remote branches are available as worktrees with
-# upstream tracking configured, ready for git pull/push.
+# ╭──────────────────────────────────────────────────────────────────────────────╮
+# │                                                                              │
+# │    ██████╗ ██╗████████╗    ██████╗  █████╗ ██████╗ ███████╗                 │
+# │   ██╔════╝ ██║╚══██╔══╝    ██╔══██╗██╔══██╗██╔══██╗██╔════╝                 │
+# │   ██║  ███╗██║   ██║       ██████╔╝███████║██████╔╝█████╗                   │
+# │   ██║   ██║██║   ██║       ██╔══██╗██╔══██║██╔══██╗██╔══╝                   │
+# │   ╚██████╔╝██║   ██║       ██████╔╝██║  ██║██║  ██║███████╗                 │
+# │    ╚═════╝ ╚═╝   ╚═╝       ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝                │
+# │                                                                              │
+# │              Clone a repo as bare + create all worktrees                    │
+# │                                                                              │
+# ╰──────────────────────────────────────────────────────────────────────────────╯
 
 set -Eeuo pipefail
 trap cleanup SIGINT SIGTERM ERR EXIT
 
+# ┌──────────────────────────────────────────────────────────────────────────────┐
+# │ Configuration                                                                │
+# └──────────────────────────────────────────────────────────────────────────────┘
+
 BARE_HOME="${BARE_HOME:-$HOME/.local/share/git-bare}"
 WORKTREES_HOME="${WORKTREES_HOME:-$HOME/Work}"
 
-usage() {
-  cat <<EOF
-Usage: $(basename "${BASH_SOURCE[0]}") [-h] [-v] [-w <path>] <repository>
+# ┌──────────────────────────────────────────────────────────────────────────────┐
+# │ Colors & Styling                                                             │
+# └──────────────────────────────────────────────────────────────────────────────┘
 
-Clone a bare git repo and create all worktrees with remote tracking configured.
+readonly RED='\033[0;31m'
+readonly GREEN='\033[0;32m'
+readonly YELLOW='\033[0;33m'
+readonly BLUE='\033[0;34m'
+readonly MAGENTA='\033[0;35m'
+readonly CYAN='\033[0;36m'
+readonly WHITE='\033[1;37m'
+readonly GRAY='\033[0;90m'
+readonly NC='\033[0m'
 
-Locations (override via environment variables or flags):
-  Bare objects:  \$BARE_HOME/<repo>       (default: ~/.local/share/git-bare/<repo>)
-  Worktrees:     \$WORKTREES_HOME/<repo>  (default: ~/Work/<repo>)
+# Nerd Font Icons
+readonly ICON_CHECK=""
+readonly ICON_CROSS=""
+readonly ICON_ARROW=""
+readonly ICON_WARN=""
+readonly ICON_INFO=""
+readonly ICON_GIT=""
+readonly ICON_FOLDER="󰉋"
+readonly ICON_CLONE="󰑌"
+readonly ICON_BRANCH=""
+readonly ICON_ROCKET="󱓞"
+readonly ICON_GEAR="󰒓"
 
-Available options:
+# ┌──────────────────────────────────────────────────────────────────────────────┐
+# │ Helper Functions                                                             │
+# └──────────────────────────────────────────────────────────────────────────────┘
 
--h, --help           Print this help and exit
--v, --verbose        Print script debug info
--w, --worktrees-dir  Override worktrees base directory
-EOF
-  exit
+print_header() {
+    echo ""
+    echo -e "${CYAN}╭────────────────────────────────────────────────────────────╮${NC}"
+    echo -e "${CYAN}│${NC}  ${WHITE}$1${NC}"
+    echo -e "${CYAN}╰────────────────────────────────────────────────────────────╯${NC}"
 }
 
-cleanup() {
-  trap - SIGINT SIGTERM ERR EXIT
+print_section() {
+    echo ""
+    echo -e "${MAGENTA}  $1${NC}"
+    echo -e "${GRAY}  ──────────────────────────────────────────────────────────${NC}"
 }
 
-setup_colors() {
-  if [[ -t 2 ]] && [[ -z "${NO_COLOR-}" ]] && [[ "${TERM-}" != "dumb" ]]; then
-    NOFORMAT='\033[0m' RED='\033[0;31m' GREEN='\033[0;32m' ORANGE='\033[0;33m' BLUE='\033[0;34m' PURPLE='\033[0;35m' CYAN='\033[0;36m' YELLOW='\033[1;33m'
-  else
-    NOFORMAT='' RED='' GREEN='' ORANGE='' BLUE='' PURPLE='' CYAN='' YELLOW=''
-  fi
+print_step() {
+    echo -e "  ${GRAY}${ICON_ARROW}${NC} $1"
 }
 
-msg() {
-  echo >&2 -e "${1-}"
+print_success() {
+    echo -e "  ${GREEN}${ICON_CHECK}${NC} $1"
+}
+
+print_error() {
+    echo -e "  ${RED}${ICON_CROSS}${NC} $1" >&2
+}
+
+print_warn() {
+    echo -e "  ${YELLOW}${ICON_WARN}${NC} $1"
+}
+
+print_info() {
+    echo -e "  ${BLUE}${ICON_INFO}${NC} $1"
 }
 
 die() {
-  local msg=$1
-  local code=${2-1}
-  msg "$msg"
-  exit "$code"
+    print_error "$1"
+    exit "${2-1}"
 }
 
+cleanup() {
+    trap - SIGINT SIGTERM ERR EXIT
+}
+
+# ┌──────────────────────────────────────────────────────────────────────────────┐
+# │ Usage                                                                        │
+# └──────────────────────────────────────────────────────────────────────────────┘
+
+usage() {
+    echo ""
+    echo -e "${WHITE}Usage:${NC} $(basename "${BASH_SOURCE[0]}") ${GRAY}[-h] [-v] [-w <path>]${NC} ${CYAN}<repository>${NC}"
+    echo ""
+    echo -e "  Clone a bare git repo and create all worktrees with upstream tracking."
+    echo ""
+    echo -e "${WHITE}Locations${NC} ${GRAY}(override via env vars or flags):${NC}"
+    echo -e "  ${GRAY}Bare objects:${NC}  \$BARE_HOME/<repo>       ${GRAY}(default: ~/.local/share/git-bare/<repo>)${NC}"
+    echo -e "  ${GRAY}Worktrees:${NC}     \$WORKTREES_HOME/<repo>  ${GRAY}(default: ~/Work/<repo>)${NC}"
+    echo ""
+    echo -e "${WHITE}Options:${NC}"
+    echo -e "  ${CYAN}-h, --help${NC}           Print this help and exit"
+    echo -e "  ${CYAN}-v, --verbose${NC}        Print script debug info"
+    echo -e "  ${CYAN}-w, --worktrees-dir${NC}  Override worktrees base directory"
+    echo ""
+    exit 0
+}
+
+# ┌──────────────────────────────────────────────────────────────────────────────┐
+# │ Argument Parsing                                                             │
+# └──────────────────────────────────────────────────────────────────────────────┘
+
 parse_params() {
-  worktrees_base="$WORKTREES_HOME"
+    worktrees_base="$WORKTREES_HOME"
 
-  while :; do
-    case "${1-}" in
-    -h | --help) usage ;;
-    -v | --verbose) set -x ;;
-    --no-color) NO_COLOR=1 ;;
-    -w | --worktrees-dir)
-        worktrees_base="${2-}"
+    while :; do
+        case "${1-}" in
+        -h | --help)        usage ;;
+        -v | --verbose)     set -x ;;
+        --no-color)         : ;;
+        -w | --worktrees-dir)
+            worktrees_base="${2-}"
+            shift
+            ;;
+        -?*) die "Unknown option: $1" ;;
+        *)   break ;;
+        esac
         shift
-        ;;
-    -?*) die "Unknown option: $1" ;;
-    *) break ;;
-    esac
-    shift
-  done
+    done
 
-  args=("$@")
-  [[ ${#args[@]} -eq 0 ]] && die "Missing required argument: repository URL"
+    args=("$@")
+    [[ ${#args[@]} -eq 0 ]] && die "Missing required argument: repository URL"
 
-  return 0
+    return 0
 }
 
 parse_params "$@"
-setup_colors
+
+# ┌──────────────────────────────────────────────────────────────────────────────┐
+# │ Pre-flight Checks                                                            │
+# └──────────────────────────────────────────────────────────────────────────────┘
 
 repo_url="${args[0]}"
 repo_name="$(basename "$repo_url" .git)"
 bare_dir="$BARE_HOME/$repo_name"
 worktrees_dir="$worktrees_base/$repo_name"
 
-[[ -d "$bare_dir" ]]      && die "${RED}Error:${NOFORMAT} Bare repo already exists at '$bare_dir'"
-[[ -d "$worktrees_dir" ]] && die "${RED}Error:${NOFORMAT} Worktrees dir already exists at '$worktrees_dir'"
+print_header "${ICON_GIT} git-bare-clone"
 
-msg "${CYAN}Repository:${NOFORMAT} $repo_name"
-msg "${CYAN}Bare:       ${NOFORMAT} $bare_dir"
-msg "${CYAN}Worktrees:  ${NOFORMAT} $worktrees_dir"
-msg ""
+print_section "${ICON_GEAR} Configuration"
+print_info "Repository:  ${WHITE}$repo_name${NC}"
+print_info "Bare:        ${GRAY}$bare_dir${NC}"
+print_info "Worktrees:   ${GRAY}$worktrees_dir${NC}"
 
-# ── 1. Clone bare ─────────────────────────────────────────────────────────────
-msg "${YELLOW}[1/5] Cloning bare repository...${NOFORMAT}"
+[[ -d "$bare_dir" ]]      && die "Bare repo already exists at '${GRAY}$bare_dir${NC}'"
+[[ -d "$worktrees_dir" ]] && die "Worktrees dir already exists at '${GRAY}$worktrees_dir${NC}'"
+
+# ┌──────────────────────────────────────────────────────────────────────────────┐
+# │ Execution Steps                                                              │
+# └──────────────────────────────────────────────────────────────────────────────┘
+
+# ── Step 1/5: Clone bare ──────────────────────────────────────────────────────
+print_section "${ICON_CLONE} [1/5] Cloning bare repository"
 mkdir -p "$BARE_HOME"
 git clone --bare "$repo_url" "$bare_dir"
+print_success "Bare repo cloned to ${GRAY}$bare_dir${NC}"
 
-# ── 2. Configure fetch refspec ────────────────────────────────────────────────
+# ── Step 2/5: Configure fetch refspec ────────────────────────────────────────
+print_section "${ICON_GEAR} [2/5] Configuring remote fetch refs"
 pushd "$bare_dir" > /dev/null
-msg "${YELLOW}[2/5] Configuring remote fetch refs...${NOFORMAT}"
 git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
+print_success "Fetch refspec configured"
 
-# ── 3. Fetch all remote tracking refs ─────────────────────────────────────────
-msg "${YELLOW}[3/5] Fetching remote tracking refs...${NOFORMAT}"
+# ── Step 3/5: Fetch all remote tracking refs ─────────────────────────────────
+print_section "${ICON_ARROW} [3/5] Fetching remote tracking refs"
 git fetch origin
+print_success "All remote refs fetched"
 popd > /dev/null
 
-# ── 4. Create worktrees directory with .git pointer ───────────────────────────
-msg "${YELLOW}[4/5] Setting up worktrees directory...${NOFORMAT}"
+# ── Step 4/5: Create worktrees directory with .git pointer ───────────────────
+print_section "${ICON_FOLDER} [4/5] Setting up worktrees directory"
 mkdir -p "$worktrees_dir"
 echo "gitdir: $bare_dir" > "$worktrees_dir/.git"
+print_success "Worktrees root created at ${GRAY}$worktrees_dir${NC}"
 
-# ── 5. Create all worktrees with upstream tracking ────────────────────────────
-msg "${YELLOW}[5/5] Creating worktrees for all remote branches...${NOFORMAT}"
+# ── Step 5/5: Create all worktrees with upstream tracking ────────────────────
+print_section "${ICON_BRANCH} [5/5] Creating worktrees for all remote branches"
 mapfile -t branches < <(
-  git --git-dir="$bare_dir" for-each-ref \
-    --format='%(refname)' \
-    refs/remotes/origin/ \
-    | grep -v 'refs/remotes/origin/HEAD' \
-    | sed 's|^refs/remotes/origin/||'
+    git --git-dir="$bare_dir" for-each-ref \
+        --format='%(refname)' \
+        refs/remotes/origin/ \
+        | grep -v 'refs/remotes/origin/HEAD' \
+        | sed 's|^refs/remotes/origin/||'
 )
 
 pushd "$worktrees_dir" > /dev/null
 for branch in "${branches[@]}"; do
-  msg "  ${BLUE}→${NOFORMAT} $branch"
-  git worktree add "$branch" "$branch"
-  git -C "$branch" branch --set-upstream-to="origin/$branch" "$branch"
+    print_step "${CYAN}$branch${NC}"
+    git worktree add "$branch" "$branch"
+    git -C "$branch" branch --set-upstream-to="origin/$branch" "$branch"
 done
 popd > /dev/null
 
-msg ""
-msg "${GREEN}✓ Done! All worktrees ready.${NOFORMAT}"
-msg ""
-msg "  ${CYAN}$worktrees_dir/${NOFORMAT}"
+# ┌──────────────────────────────────────────────────────────────────────────────┐
+# │ Summary                                                                      │
+# └──────────────────────────────────────────────────────────────────────────────┘
+
+print_header "${ICON_ROCKET} All worktrees ready"
+
+echo -e "  ${CYAN}$worktrees_dir/${NC}"
 for branch in "${branches[@]}"; do
-  msg "    ${GREEN}✓${NOFORMAT} $branch  →  origin/$branch"
+    echo -e "  ${GREEN}${ICON_CHECK}${NC} ${WHITE}$branch${NC}  ${GRAY}→  origin/$branch${NC}"
 done
-msg ""
-msg "  cd ${CYAN}$worktrees_dir/<branch>${NOFORMAT} to start working"
+echo ""
+print_info "cd ${CYAN}$worktrees_dir/<branch>${NC} to start working"
+echo ""
