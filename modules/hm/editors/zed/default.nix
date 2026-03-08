@@ -83,17 +83,27 @@ in {
   home.packages = [zedWithLSP];
 
   # ──── Copy settings as a regular file (mutable by Zed) ────
-  # Copies only if file doesn't exist yet; preserves Zed's UI changes.
-  # Remove ~/.config/zed/settings.json manually to reset from Nix.
+  # Strategy: track the store path of the last-deployed settings in a
+  # stamp file. On rebuild, if Nix config changed → overwrite (dotfiles
+  # update propagates). If unchanged → leave file alone (Zed UI edits
+  # are preserved). Replace any symlink left by a previous HM generation.
   home.activation.zedSettings = lib.hm.dag.entryAfter ["writeBoundary"] ''
-    mkdir -p "${config.xdg.configHome}/zed"
-    # Replace any symlink left by a previous HM generation
-    if [ -L "${config.xdg.configHome}/zed/settings.json" ]; then
-      rm "${config.xdg.configHome}/zed/settings.json"
+    _zed_cfg="${config.xdg.configHome}/zed"
+    _stamp="$_zed_cfg/.nix-settings-stamp"
+    _src="${settingsFile}"
+
+    mkdir -p "$_zed_cfg"
+
+    # Replace symlink from old xdg.configFile approach
+    if [ -L "$_zed_cfg/settings.json" ]; then
+      rm "$_zed_cfg/settings.json"
     fi
-    if [ ! -f "${config.xdg.configHome}/zed/settings.json" ]; then
-      cp ${settingsFile} "${config.xdg.configHome}/zed/settings.json"
-      chmod 644 "${config.xdg.configHome}/zed/settings.json"
+
+    # Deploy if: first time OR Nix config changed since last deploy
+    if [ ! -f "$_zed_cfg/settings.json" ] || [ "$(cat "$_stamp" 2>/dev/null)" != "$_src" ]; then
+      cp "$_src" "$_zed_cfg/settings.json"
+      chmod 644 "$_zed_cfg/settings.json"
+      echo "$_src" > "$_stamp"
     fi
   '';
 }
