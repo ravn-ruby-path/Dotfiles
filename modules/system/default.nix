@@ -1,8 +1,10 @@
 # ═══════════════════════════════════════════════════════════════
 # 🔧 SYSTEM MODULE - CUSTOM SYSTEM-LEVEL CONFIGURATION
 # ═══════════════════════════════════════════════════════════════
-{...}: {
-  imports = [];
+{lib, ...}: {
+  imports =
+    # ──── Optional modules: delete the file to remove all config ─
+    lib.optional (builtins.pathExists ./dropbox.nix) ./dropbox.nix;
 
   # === System Packages ===
   environment.systemPackages = [
