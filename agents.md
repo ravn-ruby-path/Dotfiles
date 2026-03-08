@@ -385,6 +385,7 @@ editor = lib.mkOption { ... };
 
 ## Tools and Enforcement
 
+- **Formatting** ⚠️ **MANDATORY**: Run `make fmt-check` after modifying **any** `.nix` file before staging or committing. This formats all Nix files with Alejandra. Unformatted files will cause `make sys-deploy` to abort.
 - **Validation**: Run `make sys-check` after changes
 - **Consistency**: Check existing files for patterns
 - **Updates**: This guide should be updated as standards evolve
@@ -553,6 +554,7 @@ git push
 - All merges to `dev` go through a Pull Request with detailed description
 - `main` only receives merges from `dev` as versioned releases
 - After merging to `dev`, sync all topic branches: `git pull --rebase origin dev`
+- **After every `.nix` file change, run `make fmt-check` before committing** — unformatted files block `make sys-deploy`
 - **`minimal-installation` must never be modified** — it is a protected snapshot of the minimum viable system. Adding packages or config to it defeats its purpose. Users who want the full system should use `main`.
 
 ### Committing changes
