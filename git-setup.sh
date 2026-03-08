@@ -619,7 +619,9 @@ configure_signing() {
         git config --global user.signingkey "$GPG_KEY_ID"
         git config --global commit.gpgsign true
         git config --global tag.gpgsign true
+        git config --global init.defaultBranch main
         print_success "Signing configured"
+        print_info "Default branch set to: ${WHITE}main${NC}"
     fi
 }
 
