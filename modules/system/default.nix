@@ -2,9 +2,12 @@
 # 🔧 SYSTEM MODULE - CUSTOM SYSTEM-LEVEL CONFIGURATION
 # ═══════════════════════════════════════════════════════════════
 { lib, ... }: {
-  imports =
-    # ──── Optional modules: delete the file to remove all config ─
-    lib.optional (builtins.pathExists ./dropbox.nix) ./dropbox.nix;
+  imports = [];
+
+  # ──── allowUnfree: gated on HM service modules that need it ──
+  # ──── Dropbox (unfree) lives at hm/services/system/dropbox.nix
+  nixpkgs.config.allowUnfree =
+    builtins.pathExists ../hm/services/system/dropbox.nix;
 
   # === System Packages ===
   environment.systemPackages = [
