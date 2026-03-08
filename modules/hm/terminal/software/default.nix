@@ -5,5 +5,6 @@
   imports = [
     ./gh.nix
     ./git.nix
+    ./scripts.nix
   ];
 }

@@ -31,6 +31,20 @@ in {
       example = "juan@example.com";
     };
 
+    githubUser = lib.mkOption {
+      type = lib.types.str;
+      default = "";
+      description = "Your GitHub username (sets github.user in gitconfig)";
+      example = "ravn-ruby-path";
+    };
+
+    worktreesHome = lib.mkOption {
+      type = lib.types.str;
+      default = config.home.homeDirectory + "/Work";
+      description = "Base directory where git worktrees are created (exported as WORKTREES_HOME)";
+      example = "/home/user/Projects";
+    };
+
     # === Editor and Tools ===
     editor = lib.mkOption {
       type = lib.types.str;
@@ -104,6 +118,12 @@ in {
   # ──── Configuration ─────────────────────────────────────────────────
   config = lib.mkMerge [
     (lib.mkIf cfg.enable {
+      # ──── Session Variables ──────────────────────────────────
+      home.sessionVariables = {
+        WORKTREES_HOME = cfg.worktreesHome;
+        BARE_HOME = config.home.homeDirectory + "/.local/share/git-bare";
+      };
+
       # ──── Packages ────────────────────────────────────────────
       home.packages = with pkgs;
         [
@@ -203,6 +223,11 @@ in {
             // lib.optionalAttrs (cfg.gpg.enable && cfg.gpg.signingKey != "") {
               signingKey = cfg.gpg.signingKey;
             };
+
+          # ──── GitHub Identity ───────────────────────────────────────────
+          github = lib.optionalAttrs (cfg.githubUser != "") {
+            user = cfg.githubUser;
+          };
         }
         # ──── Delta: Enhanced Diff Pager ────────────────────────────────
         // lib.optionalAttrs cfg.delta.enable {
@@ -275,6 +300,7 @@ in {
         enable = true;
         userName = "Roberto Flores";
         userEmail = "25asab015@ujmd.edu.sv";
+        githubUser = "ravn-ruby-path";
         editor = "nvim";
         delta.enable = true;
         delta.sideBySide = true;
