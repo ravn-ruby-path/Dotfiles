@@ -33,15 +33,19 @@
   # ═══════════════════════════════════════════════════════════════
   # 🗂️  VSCODE WORKSPACE — Always present after rebuild
   # ═══════════════════════════════════════════════════════════════
-  # ──── Why: .vscode/ must live at ~/Work/Dotfiles/ (workspace ──
-  # ──── root) for VS Code to pick up formatOnSave, nil LSP, ─────
-  # ──── statix task and extension recommendations. ──────────────
-  # ──── home.file ensures it survives worktree changes and ──────
-  # ──── is recreated on every `nixos-rebuild switch`. ───────────
+  # ──── Why: .vscode/ and statix.toml must live at            ───
+  # ──── ~/Work/Dotfiles/ (workspace root) for VS Code to pick ───
+  # ──── up formatOnSave, nil LSP, statix task and extension   ───
+  # ──── recommendations. home.file ensures they survive        ───
+  # ──── worktree changes and are recreated on every rebuild.  ───
   home.file = {
     "Work/Dotfiles/.vscode/settings.json".source = ../../.vscode/settings.json;
     "Work/Dotfiles/.vscode/extensions.json".source = ../../.vscode/extensions.json;
     "Work/Dotfiles/.vscode/tasks.json".source = ../../.vscode/tasks.json;
+    # ──── statix.toml: read by VS Code "statix: check" task ───
+    # ──── which runs from workspace root — without this file ───
+    # ──── statix uses defaults and shows false-positive W04/W20 ─
+    "Work/Dotfiles/statix.toml".source = ../../statix.toml;
   };
 
   # ──── HyDE Home Manager Integration ────────────────────────
