@@ -6,6 +6,7 @@
 {
   pkgs,
   lib,
+  config,
   ...
 }: let
   # ──── LSP and tool packages ───────────────────────────────
@@ -75,10 +76,24 @@
 
   # ──── Merged settings JSON ─────────────────────────────────
   settingsJSON = builtins.toJSON (baseSettings // languageConfig);
+
+  # ──── Store path for activation script ────────────────────
+  settingsFile = pkgs.writeText "zed-settings.json" settingsJSON;
 in {
   home.packages = [zedWithLSP];
 
-  xdg.configFile."zed/settings.json" = {
-    text = settingsJSON;
-  };
+  # ──── Copy settings as a regular file (mutable by Zed) ────
+  # Copies only if file doesn't exist yet; preserves Zed's UI changes.
+  # Remove ~/.config/zed/settings.json manually to reset from Nix.
+  home.activation.zedSettings = lib.hm.dag.entryAfter ["writeBoundary"] ''
+    mkdir -p "${config.xdg.configHome}/zed"
+    # Replace any symlink left by a previous HM generation
+    if [ -L "${config.xdg.configHome}/zed/settings.json" ]; then
+      rm "${config.xdg.configHome}/zed/settings.json"
+    fi
+    if [ ! -f "${config.xdg.configHome}/zed/settings.json" ]; then
+      cp ${settingsFile} "${config.xdg.configHome}/zed/settings.json"
+      chmod 644 "${config.xdg.configHome}/zed/settings.json"
+    fi
+  '';
 }
