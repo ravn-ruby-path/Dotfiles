@@ -10,6 +10,7 @@
     ./terminal/default.nix
     ./services/default.nix
     ./packages/apps/default.nix
+    ./editors/default.nix
   ];
 
   # === User Packages ===
