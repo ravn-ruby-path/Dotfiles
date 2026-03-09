@@ -7,9 +7,6 @@
     grc
     zellij
     wl-clipboard
-    (writeShellScriptBin "hx" ''
-      ${pkgs.helix}/bin/hx "$@"
-    '')
   ];
 
   xdg.configFile = {
