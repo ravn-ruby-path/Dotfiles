@@ -1,10 +1,7 @@
 # ═══════════════════════════════════════════════════════════════
 # 🚀 STARSHIP - CROSS-SHELL PROMPT
 # ═══════════════════════════════════════════════════════════════
-{
-  pkgs,
-  ...
-}: let
+{pkgs, ...}: let
   configFile = "starship/fish.toml";
   toTOML = (pkgs.formats.toml {}).generate;
 in {
