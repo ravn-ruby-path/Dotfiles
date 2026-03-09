@@ -12,6 +12,7 @@
     ./packages/apps/default.nix
     ./packages/browsers/default.nix
     ./packages/media/default.nix
+    ./packages/packages.nix
     ./editors/default.nix
   ];
 
