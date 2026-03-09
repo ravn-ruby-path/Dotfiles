@@ -56,4 +56,8 @@
   # ──── HyDE Home Manager Integration ────────────────────────
   hydenix.hm.enable = true;
   # Visit https://github.com/richen604/hydenix/blob/main/docs/options.md for more options
+
+  # ──── HyDeNix shell: starship.enable stays true (default)
+  # zsh uses starship/starship.toml (hyde theme)
+  # fish uses starship/fish.toml (shin theme) — set in fish/conf.d/starship.fish
 }
