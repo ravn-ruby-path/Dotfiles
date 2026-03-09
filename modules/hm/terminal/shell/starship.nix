@@ -2,22 +2,16 @@
 # 🚀 STARSHIP - CROSS-SHELL PROMPT
 # ═══════════════════════════════════════════════════════════════
 {
-  config,
   pkgs,
   ...
 }: let
-  configFile = "starship/starship.toml";
+  configFile = "starship/fish.toml";
   toTOML = (pkgs.formats.toml {}).generate;
 in {
-  home.sessionVariables = {
-    STARSHIP_CONFIG = "${config.xdg.configHome}/${configFile}";
-    STARSHIP_LOG = "error";
-  };
-
   home.packages = [pkgs.starship];
 
   xdg.configFile = {
-    "${configFile}".source = toTOML "starship.toml" {
+    "${configFile}".source = toTOML "fish.toml" {
       add_newline = true;
       scan_timeout = 5;
       command_timeout = 500;
@@ -131,6 +125,8 @@ in {
     };
 
     "fish/conf.d/starship.fish".text = ''
+      set -gx STARSHIP_CONFIG "$XDG_CONFIG_HOME/starship/fish.toml"
+      set -gx STARSHIP_LOG error
       starship init fish | source
     '';
 
