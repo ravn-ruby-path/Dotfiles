@@ -4,8 +4,7 @@
 {pkgs, ...}: {
   home.packages = [pkgs.zoxide];
 
-  xdg.configFile."fish/conf.d/zoxide.fish".source =
-    pkgs.runCommand "zoxide-fish-init" {} ''
-      ${pkgs.zoxide}/bin/zoxide init fish > $out
-    '';
+  xdg.configFile."fish/conf.d/zoxide.fish".source = pkgs.runCommand "zoxide-fish-init" {} ''
+    ${pkgs.zoxide}/bin/zoxide init fish > $out
+  '';
 }

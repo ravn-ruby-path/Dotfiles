@@ -38,7 +38,6 @@ in {
       tiebreak: "index,begin,end,length"
     '';
 
-    "fish/conf.d/skim.fish".source =
-      "${pkgs.skim}/share/fish/vendor_completions.d/sk.fish";
+    "fish/conf.d/skim.fish".source = "${pkgs.skim}/share/fish/vendor_completions.d/sk.fish";
   };
 }

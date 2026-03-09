@@ -24,8 +24,7 @@
     enabled = true
   '';
 
-  xdg.configFile."fish/completions/carapace.fish".source =
-    pkgs.runCommand "carapace-fish-init" {} ''
-      ${pkgs.carapace}/bin/carapace _carapace fish > $out
-    '';
+  xdg.configFile."fish/completions/carapace.fish".source = pkgs.runCommand "carapace-fish-init" {} ''
+    ${pkgs.carapace}/bin/carapace _carapace fish > $out
+  '';
 }

@@ -134,7 +134,6 @@ in {
       starship init fish | source
     '';
 
-    "fish/completions/starship.fish".source =
-      "${pkgs.starship}/share/fish/vendor_completions.d/starship.fish";
+    "fish/completions/starship.fish".source = "${pkgs.starship}/share/fish/vendor_completions.d/starship.fish";
   };
 }
