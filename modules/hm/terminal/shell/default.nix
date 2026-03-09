@@ -1,10 +1,9 @@
 # ═══════════════════════════════════════════════════════════════
-# 💻 TERMINAL - TERMINAL TOOLS AND SOFTWARE AGGREGATOR
+# 🐚 SHELL - SHELL MODULE AGGREGATOR
 # ═══════════════════════════════════════════════════════════════
-{...}: {
-  imports = [
-    ./emulators/default.nix
-    ./shell/default.nix
-    ./software/default.nix
-  ];
+{lib, ...}: {
+  imports =
+    (lib.optional (builtins.pathExists ./carapace.nix) ./carapace.nix)
+    ++ (lib.optional (builtins.pathExists ./starship.nix) ./starship.nix)
+    ++ (lib.optional (builtins.pathExists ./fish.nix) ./fish.nix);
 }

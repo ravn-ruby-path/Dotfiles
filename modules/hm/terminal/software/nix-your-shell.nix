@@ -1,10 +1,10 @@
 # ═══════════════════════════════════════════════════════════════
-# 💻 TERMINAL - TERMINAL TOOLS AND SOFTWARE AGGREGATOR
+# 🐚 NIX-YOUR-SHELL - NIX SHELL FISH INTEGRATION
 # ═══════════════════════════════════════════════════════════════
-{...}: {
-  imports = [
-    ./emulators/default.nix
-    ./shell/default.nix
-    ./software/default.nix
-  ];
+{pkgs, ...}: {
+  home.packages = [pkgs.nix-your-shell];
+
+  xdg.configFile."fish/conf.d/nix-your-shell.fish".source = pkgs.runCommand "nix-your-shell-init" {} ''
+    ${pkgs.nix-your-shell}/bin/nix-your-shell fish > $out
+  '';
 }
