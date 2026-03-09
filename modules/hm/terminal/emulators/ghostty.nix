@@ -12,32 +12,32 @@ in {
 
   xdg.configFile."${configFile}".text = ''
     ${lib.generators.toKeyValue {
-      mkKeyValue = k: v: "${k}=${v}";
-      listsAsDuplicateKeys = true;
-    } {
-      theme = "noctalia";
-      scrollback-limit = "10000";
-      font-family = "GT Pressura Mono Trial";
-      font-size = "8.7";
-      font-feature = "calt,dlig,fina,ss13,ss15";
-      cursor-style = "bar";
-      cursor-style-blink = "true";
-      window-padding-x = "15";
-      window-padding-y = "6";
-      desktop-notifications = "true";
-      resize-overlay = "never";
-      window-decoration = "none";
-      bell-features = "audio";
-      window-inherit-working-directory = "true";
-      confirm-close-surface = "false";
-      gtk-single-instance = "true";
-      quit-after-last-window-closed = "false";
-      adjust-cursor-height = "40%";
-      adjust-cursor-thickness = "100%";
-      adjust-box-thickness = "100%";
-      adjust-underline-thickness = "100%";
-      adjust-underline-position = "110%";
-    }}
+        mkKeyValue = k: v: "${k}=${v}";
+        listsAsDuplicateKeys = true;
+      } {
+        theme = "noctalia";
+        scrollback-limit = "10000";
+        font-family = "GT Pressura Mono Trial";
+        font-size = "8.7";
+        font-feature = "calt,dlig,fina,ss13,ss15";
+        cursor-style = "bar";
+        cursor-style-blink = "true";
+        window-padding-x = "15";
+        window-padding-y = "6";
+        desktop-notifications = "true";
+        resize-overlay = "never";
+        window-decoration = "none";
+        bell-features = "audio";
+        window-inherit-working-directory = "true";
+        confirm-close-surface = "false";
+        gtk-single-instance = "true";
+        quit-after-last-window-closed = "false";
+        adjust-cursor-height = "40%";
+        adjust-cursor-thickness = "100%";
+        adjust-box-thickness = "100%";
+        adjust-underline-thickness = "100%";
+        adjust-underline-position = "110%";
+      }}
     ${lib.concatMapStringsSep "\n" (binding: "keybind=${binding}") [
       "ctrl+shift+i=inspector:toggle"
       "ctrl+shift+p=toggle_command_palette"
