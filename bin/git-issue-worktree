@@ -117,7 +117,7 @@ usage() {
 # └──────────────────────────────────────────────────────────────────────────────┘
 
 parse_params() {
-    prefix="$(git config github.user 2>/dev/null || true)/"
+    prefix=""
     base='origin/main'
     repo_dir=''
     issue_num=''
